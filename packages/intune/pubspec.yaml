@@ -1,0 +1,26 @@
+name: intune
+description: A new Flutter plugin project.
+version: 0.1.0
+homepage:
+
+environment:
+  sdk: ">=2.15.0 <3.0.0"
+  flutter: ">=2.8.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^2.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        default_package: intune_android
+      ios:
+        default_package: intune_apple

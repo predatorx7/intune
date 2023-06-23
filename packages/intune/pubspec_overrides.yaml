@@ -1,0 +1,7 @@
+dependency_overrides:
+  intune_android:
+    path: ../intune_android
+  intune_apple:
+    path: ../intune_apple
+  intune_platform_interface:
+    path: ../intune_platform_interface
