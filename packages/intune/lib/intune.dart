@@ -1,14 +1,14 @@
-// You have generated a new plugin project without specifying the `--platforms`
-// flag. A plugin project with no platform support was generated. To add a
-// platform, run `flutter create -t plugin --platforms <platforms> .` under the
-// same directory. You can also find a detailed instruction on how to add
-// platforms in the `pubspec.yaml` at
-// https://flutter.dev/docs/development/packages-and-plugins/developing-packages#plugin-platforms.
+import 'package:intune_platform_interface/intune_platform_interface.dart';
 
-import 'intune_platform_interface.dart';
+export 'package:intune_platform_interface/intune_platform_interface.dart'
+    show IntunePlatform;
+export 'package:intune_android/intune_android.dart' show IntuneAndroid;
+export 'package:intune_ios/intune_ios.dart' show IntuneIos;
+
+IntunePlatform get _platform => IntunePlatform.instance;
 
 class Intune {
-  Future<String?> getPlatformVersion() {
-    return IntunePlatform.instance.getPlatformVersion();
+  Future<String> ping(String hello) {
+    return _platform.ping(hello);
   }
 }

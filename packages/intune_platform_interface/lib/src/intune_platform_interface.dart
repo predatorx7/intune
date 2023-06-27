@@ -31,7 +31,7 @@ abstract class IntunePlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<bool> doSomething() {
-    throw UnimplementedError('doSomething() has not been implemented.');
+  Future<String> ping(String hello) {
+    throw UnimplementedError('ping() has not been implemented.');
   }
 }

@@ -1,9 +1,8 @@
 import 'package:intune_platform_interface/intune_platform_interface.dart';
 import 'messages.g.dart' as messages;
 
-/// The Android implementation of [IntunePlatform].
-class IntuneAndroid extends IntunePlatform {
-  IntuneAndroid([
+class IntuneIos extends IntunePlatform {
+  IntuneIos([
     messages.IntuneApi? api,
   ]) : _api = api ?? messages.IntuneApi();
 
@@ -11,7 +10,7 @@ class IntuneAndroid extends IntunePlatform {
 
   /// Registers this class as the default instance of [IntunePlatform].
   static void registerWith() {
-    IntunePlatform.instance = IntuneAndroid();
+    IntunePlatform.instance = IntuneIos();
   }
 
   @override

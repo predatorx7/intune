@@ -4,22 +4,24 @@ version: 0.1.0
 homepage:
 
 environment:
-  sdk: ">=2.15.0 <3.0.0"
-  flutter: ">=2.8.0"
+  sdk: ">=2.18.0 <3.0.0"
+  flutter: ">=3.3.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  plugin_platform_interface: ^2.0.0
+  intune_platform_interface: ^0.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
+  pigeon: ^10.1.0
 
 flutter:
   plugin:
+    implements: intune
     platforms:
       android:
-        package: com.hdfc.intune_android
+        package: com.hdfc.flutter_plugins.intune_android
         pluginClass: IntuneAndroidPlugin
