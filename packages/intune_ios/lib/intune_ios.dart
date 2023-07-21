@@ -12,9 +12,4 @@ class IntuneIos extends IntunePlatform {
   static void registerWith() {
     IntunePlatform.instance = IntuneIos();
   }
-
-  @override
-  Future<String> ping(String hello) {
-    return _api.ping(hello);
-  }
 }

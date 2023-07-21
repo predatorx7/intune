@@ -5,6 +5,34 @@ void main() {
   runApp(const MyApp());
 }
 
+class IntuneAndroidCallbackImpl extends IntuneAndroidCallback {
+  @override
+  Future<String?> acquireTokenSilent(
+      String upn, String aadId, Iterable<String> scopes) {
+    // TODO: implement acquireTokenSilent
+    throw UnimplementedError();
+  }
+
+  @override
+  void onEnrollmentNotification(String enrollmentResult) {
+    print('enrollmentResult: $enrollmentResult');
+  }
+
+  @override
+  void onUnexpectedEnrollmentNotification() {
+    print('onUnexpectedEnrollmentNotification');
+  }
+}
+
+late final Intune intune;
+
+void setupIntune() {
+  IntuneAndroid.registerWith();
+  intune = Intune();
+  intune.registerReceivers(IntuneAndroidCallbackImpl());
+  intune.registerAuthentication();
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -58,27 +86,17 @@ class _MyHomePageState extends State<MyHomePage> {
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 10),
-            FutureBuilder(
-              future: Intune().ping('counter $_counter'),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Text(
-                    snapshot.error?.toString() ?? 'Failed',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineSmall?.merge(
-                          TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                        ),
-                  );
-                }
-                final result = snapshot.data ?? '...';
-                return Text(
-                  result,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                );
+            ElevatedButton(
+              onPressed: () {
+                intune.registerAccount(upn, aadId, tenantId, authorityURL);
               },
+              child: const Text('Login'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                intune.unregisterAccount(upn, aadId);
+              },
+              child: const Text('Login'),
             ),
           ],
         ),

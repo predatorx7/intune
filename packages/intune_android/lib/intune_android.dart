@@ -1,5 +1,8 @@
 import 'package:intune_platform_interface/intune_platform_interface.dart';
+import 'intune_android_callback.dart';
+import 'intune_flutter_api.dart';
 import 'messages.g.dart' as messages;
+export 'intune_android_callback.dart';
 
 /// The Android implementation of [IntunePlatform].
 class IntuneAndroid extends IntunePlatform {
@@ -14,8 +17,34 @@ class IntuneAndroid extends IntunePlatform {
     IntunePlatform.instance = IntuneAndroid();
   }
 
+  void setAndroidReceiver(IntuneAndroidCallback receiver) {
+    messages.IntuneFlutterApi.setup(InternalIntuneFlutterApi(receiver));
+  }
+
+  void removeAndroidReceiver() {
+    messages.IntuneFlutterApi.setup(null);
+  }
+
   @override
-  Future<String> ping(String hello) {
-    return _api.ping(hello);
+  Future<bool> registerAuthentication() {
+    return _api.registerAuthentication();
+  }
+
+  @override
+  Future<bool> registerAccountForMAM(
+    String upn,
+    String aadId,
+    String tenantId,
+    String authorityURL,
+  ) {
+    return _api.registerAccountForMAM(upn, aadId, tenantId, authorityURL);
+  }
+
+  @override
+  Future<bool> unregisterAccountFromMAM(
+    String upn,
+    String aadId,
+  ) {
+    return _api.unregisterAccountFromMAM(upn, aadId);
   }
 }

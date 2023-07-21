@@ -1,0 +1,17 @@
+{
+  "client_id": "1211f54f-dceb-49a4-9425-68555720b104",
+  "authorization_user_agent": "DEFAULT",
+  "redirect_uri": "msauth://com.hdfc.irm/%2F56jD0%2FutKRWxj0sQxgm5d43G48%3D",
+  "broker_redirect_uri_registered": true,
+  "multiple_clouds_supported": true,
+  "authorities": [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADMultipleOrgs",
+        "tenant_id": "330ab017-b6ba-4bcb-9fdd-46380820364a"
+      }
+    }
+  ],
+  "account_mode": "MULTIPLE"
+}

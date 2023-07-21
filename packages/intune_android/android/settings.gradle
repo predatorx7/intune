@@ -1,1 +1,2 @@
 rootProject.name = 'intune_android'
+include ':MAMSDK'

@@ -31,7 +31,26 @@ abstract class IntunePlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<String> ping(String hello) {
-    throw UnimplementedError('ping() has not been implemented.');
+  Future<bool> registerAuthentication() {
+    throw UnimplementedError(
+        'registerAuthentication() has not been implemented.');
+  }
+
+  Future<bool> registerAccountForMAM(
+    String upn,
+    String aadId,
+    String tenantId,
+    String authorityURL,
+  ) {
+    throw UnimplementedError(
+        'registerAccountForMAM() has not been implemented.');
+  }
+
+  Future<bool> unregisterAccountFromMAM(
+    String upn,
+    String aadId,
+  ) {
+    throw UnimplementedError(
+        'unregisterAccountFromMAM() has not been implemented.');
   }
 }
