@@ -109,13 +109,17 @@ class _MyHomePageState extends State<MyHomePage> {
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
-                intune.signIn(SignInParams(scopes: scopes));
+                intune.signIn(SignInParams(
+                  scopes: ['https://graph.microsoft.com/User.Read'],
+                  authority:
+                      'msauth://com.hdfc.irm/%2F56jD0%2FutKRWxj0sQxgm5d43G48%3D',
+                ));
               },
               child: const Text('Login'),
             ),
             ElevatedButton(
               onPressed: () {
-                intune.unregisterAccount(upn, aadId);
+                //
               },
               child: const Text('Logout'),
             ),

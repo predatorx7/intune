@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:intune_android/intune_android.dart';
 import 'package:intune_android/messages.g.dart';
@@ -57,28 +59,33 @@ class Intune {
     }
   }
 
-  void signIn(SignInParams params) {
+  FutureOr<bool> signIn(SignInParams params) {
     final platform = _platform;
     if (platform is IntuneAndroid) {
-      platform.signIn(params);
+      return platform.signIn(params);
     }
+    return false;
   }
 
-  void signOut(String? aadId) {
+  FutureOr<bool> signOut(String? aadId) {
     final platform = _platform;
     if (platform is IntuneAndroid) {
-      platform.signOut(aadId);
+      return platform.signOut(aadId);
     }
+    return false;
   }
 
-  void createMicrosoftPublicClientApplication({
+  FutureOr<bool> createMicrosoftPublicClientApplication({
     required Map<String?, Object?> publicClientApplicationConfiguration,
     bool enableLogs = kDebugMode,
   }) {
     final platform = _platform;
     if (platform is IntuneAndroid) {
-      platform.createMicrosoftPublicClientApplication(
-          publicClientApplicationConfiguration, enableLogs);
+      return platform.createMicrosoftPublicClientApplication(
+        publicClientApplicationConfiguration,
+        enableLogs,
+      );
     }
+    return false;
   }
 }
