@@ -57,6 +57,18 @@ enum class MSALLoginPrompt(val raw: Int) {
   }
 }
 
+enum class MSALErrorType(val raw: Int) {
+  INTUNEAPPPROTECTIONPOLICYREQUIRED(0),
+  USERCANCELLEDSIGNINREQUEST(1),
+  UNKNOWN(2);
+
+  companion object {
+    fun ofRaw(raw: Int): MSALErrorType? {
+      return values().firstOrNull { it.raw == raw }
+    }
+  }
+}
+
 /** Generated class from Pigeon that represents data sent in messages. */
 data class SignInParams (
   val scopes: List<String?>,
@@ -118,6 +130,92 @@ data class MSALApiException (
   }
 }
 
+/** Generated class from Pigeon that represents data sent in messages. */
+data class MSALErrorResponse (
+  val errorType: MSALErrorType
+
+) {
+  companion object {
+    @Suppress("UNCHECKED_CAST")
+    fun fromList(list: List<Any?>): MSALErrorResponse {
+      val errorType = MSALErrorType.ofRaw(list[0] as Int)!!
+      return MSALErrorResponse(errorType)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf<Any?>(
+      errorType.raw,
+    )
+  }
+}
+
+/** Generated class from Pigeon that represents data sent in messages. */
+data class MSALUserAccount (
+  val authority: String,
+  /** aadid */
+  val id: String,
+  val idToken: String? = null,
+  val tenantId: String,
+  /** upn */
+  val username: String
+
+) {
+  companion object {
+    @Suppress("UNCHECKED_CAST")
+    fun fromList(list: List<Any?>): MSALUserAccount {
+      val authority = list[0] as String
+      val id = list[1] as String
+      val idToken = list[2] as String?
+      val tenantId = list[3] as String
+      val username = list[4] as String
+      return MSALUserAccount(authority, id, idToken, tenantId, username)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf<Any?>(
+      authority,
+      id,
+      idToken,
+      tenantId,
+      username,
+    )
+  }
+}
+
+/** Generated class from Pigeon that represents data sent in messages. */
+data class MSALUserAuthenticationDetails (
+  val accessToken: String,
+  val account: MSALUserAccount,
+  val authenticationScheme: String,
+  val correlationId: Long? = null,
+  val expiresOnISO8601: String,
+  val scope: List<String?>
+
+) {
+  companion object {
+    @Suppress("UNCHECKED_CAST")
+    fun fromList(list: List<Any?>): MSALUserAuthenticationDetails {
+      val accessToken = list[0] as String
+      val account = MSALUserAccount.fromList(list[1] as List<Any?>)
+      val authenticationScheme = list[2] as String
+      val correlationId = list[3].let { if (it is Int) it.toLong() else it as Long? }
+      val expiresOnISO8601 = list[4] as String
+      val scope = list[5] as List<String?>
+      return MSALUserAuthenticationDetails(accessToken, account, authenticationScheme, correlationId, expiresOnISO8601, scope)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf<Any?>(
+      accessToken,
+      account.toList(),
+      authenticationScheme,
+      correlationId,
+      expiresOnISO8601,
+      scope,
+    )
+  }
+}
+
 @Suppress("UNCHECKED_CAST")
 private object IntuneApiCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
@@ -128,6 +226,21 @@ private object IntuneApiCodec : StandardMessageCodec() {
         }
       }
       129.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          MSALErrorResponse.fromList(it)
+        }
+      }
+      130.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          MSALUserAccount.fromList(it)
+        }
+      }
+      131.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          MSALUserAuthenticationDetails.fromList(it)
+        }
+      }
+      132.toByte() -> {
         return (readValue(buffer) as? List<Any?>)?.let {
           SignInParams.fromList(it)
         }
@@ -141,8 +254,20 @@ private object IntuneApiCodec : StandardMessageCodec() {
         stream.write(128)
         writeValue(stream, value.toList())
       }
-      is SignInParams -> {
+      is MSALErrorResponse -> {
         stream.write(129)
+        writeValue(stream, value.toList())
+      }
+      is MSALUserAccount -> {
+        stream.write(130)
+        writeValue(stream, value.toList())
+      }
+      is MSALUserAuthenticationDetails -> {
+        stream.write(131)
+        writeValue(stream, value.toList())
+      }
+      is SignInParams -> {
+        stream.write(132)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -156,7 +281,9 @@ interface IntuneApi {
   fun registerAccountForMAM(upn: String, aadId: String, tenantId: String, authorityURL: String, callback: (Result<Boolean>) -> Unit)
   fun unregisterAccountFromMAM(upn: String, aadId: String, callback: (Result<Boolean>) -> Unit)
   fun createMicrosoftPublicClientApplication(publicClientApplicationConfiguration: Map<String, Any?>, enableLogs: Boolean, callback: (Result<Boolean>) -> Unit)
+  fun getAccounts(aadId: String?, callback: (Result<List<MSALUserAccount?>>) -> Unit)
   fun signIn(params: SignInParams, callback: (Result<Boolean>) -> Unit)
+  fun signOut(aadId: String?, callback: (Result<Boolean>) -> Unit)
 
   companion object {
     /** The codec used by IntuneApi. */
@@ -250,12 +377,52 @@ interface IntuneApi {
         }
       }
       run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.IntuneApi.getAccounts", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val aadIdArg = args[0] as String?
+            api.getAccounts(aadIdArg) { result: Result<List<MSALUserAccount?>> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
         val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.IntuneApi.signIn", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val paramsArg = args[0] as SignInParams
             api.signIn(paramsArg) { result: Result<Boolean> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.IntuneApi.signOut", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val aadIdArg = args[0] as String?
+            api.signOut(aadIdArg) { result: Result<Boolean> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))
@@ -281,6 +448,21 @@ private object IntuneFlutterApiCodec : StandardMessageCodec() {
           MSALApiException.fromList(it)
         }
       }
+      129.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          MSALErrorResponse.fromList(it)
+        }
+      }
+      130.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          MSALUserAccount.fromList(it)
+        }
+      }
+      131.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          MSALUserAuthenticationDetails.fromList(it)
+        }
+      }
       else -> super.readValueOfType(type, buffer)
     }
   }
@@ -288,6 +470,18 @@ private object IntuneFlutterApiCodec : StandardMessageCodec() {
     when (value) {
       is MSALApiException -> {
         stream.write(128)
+        writeValue(stream, value.toList())
+      }
+      is MSALErrorResponse -> {
+        stream.write(129)
+        writeValue(stream, value.toList())
+      }
+      is MSALUserAccount -> {
+        stream.write(130)
+        writeValue(stream, value.toList())
+      }
+      is MSALUserAuthenticationDetails -> {
+        stream.write(131)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -302,13 +496,6 @@ class IntuneFlutterApi(private val binaryMessenger: BinaryMessenger) {
     /** The codec used by IntuneFlutterApi. */
     val codec: MessageCodec<Any?> by lazy {
       IntuneFlutterApiCodec
-    }
-  }
-  fun acquireTokenSilent(upnArg: String, aadIdArg: String, scopesArg: List<String>, callback: (String?) -> Unit) {
-    val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.IntuneFlutterApi.acquireTokenSilent", codec)
-    channel.send(listOf(upnArg, aadIdArg, scopesArg)) {
-      val result = it as String?
-      callback(result)
     }
   }
   fun onEnrollmentNotification(enrollmentResultArg: String, callback: () -> Unit) {
@@ -326,6 +513,18 @@ class IntuneFlutterApi(private val binaryMessenger: BinaryMessenger) {
   fun onMsalException(exceptionArg: MSALApiException, callback: () -> Unit) {
     val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.IntuneFlutterApi.onMsalException", codec)
     channel.send(listOf(exceptionArg)) {
+      callback()
+    }
+  }
+  fun onErrorType(responseArg: MSALErrorResponse, callback: () -> Unit) {
+    val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.IntuneFlutterApi.onErrorType", codec)
+    channel.send(listOf(responseArg)) {
+      callback()
+    }
+  }
+  fun onUserAuthenticationDetails(detailsArg: MSALUserAuthenticationDetails, callback: () -> Unit) {
+    val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.IntuneFlutterApi.onUserAuthenticationDetails", codec)
+    channel.send(listOf(detailsArg)) {
       callback()
     }
   }

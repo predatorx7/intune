@@ -16,6 +16,12 @@ enum MSALLoginPrompt {
   whenRequired,
 }
 
+enum MSALErrorType {
+  intuneAppProtectionPolicyRequired,
+  userCancelledSignInRequest,
+  unknown,
+}
+
 class SignInParams {
   SignInParams({
     required this.scopes,
@@ -56,9 +62,8 @@ class SignInParams {
       correlationId: result[1] as String?,
       authority: result[2] as String?,
       loginHint: result[3] as String?,
-      prompt: result[4] != null
-          ? MSALLoginPrompt.values[result[4]! as int]
-          : null,
+      prompt:
+          result[4] != null ? MSALLoginPrompt.values[result[4]! as int] : null,
       extraScopesToConsent: (result[5] as List<Object?>?)?.cast<String?>(),
     );
   }
@@ -95,6 +100,116 @@ class MSALApiException {
   }
 }
 
+class MSALErrorResponse {
+  MSALErrorResponse({
+    required this.errorType,
+  });
+
+  MSALErrorType errorType;
+
+  Object encode() {
+    return <Object?>[
+      errorType.index,
+    ];
+  }
+
+  static MSALErrorResponse decode(Object result) {
+    result as List<Object?>;
+    return MSALErrorResponse(
+      errorType: MSALErrorType.values[result[0]! as int],
+    );
+  }
+}
+
+class MSALUserAccount {
+  MSALUserAccount({
+    required this.authority,
+    required this.id,
+    this.idToken,
+    required this.tenantId,
+    required this.username,
+  });
+
+  String authority;
+
+  /// aadid
+  String id;
+
+  String? idToken;
+
+  String tenantId;
+
+  /// upn
+  String username;
+
+  Object encode() {
+    return <Object?>[
+      authority,
+      id,
+      idToken,
+      tenantId,
+      username,
+    ];
+  }
+
+  static MSALUserAccount decode(Object result) {
+    result as List<Object?>;
+    return MSALUserAccount(
+      authority: result[0]! as String,
+      id: result[1]! as String,
+      idToken: result[2] as String?,
+      tenantId: result[3]! as String,
+      username: result[4]! as String,
+    );
+  }
+}
+
+class MSALUserAuthenticationDetails {
+  MSALUserAuthenticationDetails({
+    required this.accessToken,
+    required this.account,
+    required this.authenticationScheme,
+    this.correlationId,
+    required this.expiresOnISO8601,
+    required this.scope,
+  });
+
+  String accessToken;
+
+  MSALUserAccount account;
+
+  String authenticationScheme;
+
+  int? correlationId;
+
+  String expiresOnISO8601;
+
+  List<String?> scope;
+
+  Object encode() {
+    return <Object?>[
+      accessToken,
+      account.encode(),
+      authenticationScheme,
+      correlationId,
+      expiresOnISO8601,
+      scope,
+    ];
+  }
+
+  static MSALUserAuthenticationDetails decode(Object result) {
+    result as List<Object?>;
+    return MSALUserAuthenticationDetails(
+      accessToken: result[0]! as String,
+      account: MSALUserAccount.decode(result[1]! as List<Object?>),
+      authenticationScheme: result[2]! as String,
+      correlationId: result[3] as int?,
+      expiresOnISO8601: result[4]! as String,
+      scope: (result[5] as List<Object?>?)!.cast<String?>(),
+    );
+  }
+}
+
 class _IntuneApiCodec extends StandardMessageCodec {
   const _IntuneApiCodec();
   @override
@@ -102,8 +217,17 @@ class _IntuneApiCodec extends StandardMessageCodec {
     if (value is MSALApiException) {
       buffer.putUint8(128);
       writeValue(buffer, value.encode());
-    } else if (value is SignInParams) {
+    } else if (value is MSALErrorResponse) {
       buffer.putUint8(129);
+      writeValue(buffer, value.encode());
+    } else if (value is MSALUserAccount) {
+      buffer.putUint8(130);
+      writeValue(buffer, value.encode());
+    } else if (value is MSALUserAuthenticationDetails) {
+      buffer.putUint8(131);
+      writeValue(buffer, value.encode());
+    } else if (value is SignInParams) {
+      buffer.putUint8(132);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -113,9 +237,15 @@ class _IntuneApiCodec extends StandardMessageCodec {
   @override
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
-      case 128: 
+      case 128:
         return MSALApiException.decode(readValue(buffer)!);
-      case 129: 
+      case 129:
+        return MSALErrorResponse.decode(readValue(buffer)!);
+      case 130:
+        return MSALUserAccount.decode(readValue(buffer)!);
+      case 131:
+        return MSALUserAuthenticationDetails.decode(readValue(buffer)!);
+      case 132:
         return SignInParams.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -137,8 +267,7 @@ class IntuneApi {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.IntuneApi.registerAuthentication', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList =
-        await channel.send(null) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -160,12 +289,14 @@ class IntuneApi {
     }
   }
 
-  Future<bool> registerAccountForMAM(String arg_upn, String arg_aadId, String arg_tenantId, String arg_authorityURL) async {
+  Future<bool> registerAccountForMAM(String arg_upn, String arg_aadId,
+      String arg_tenantId, String arg_authorityURL) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.IntuneApi.registerAccountForMAM', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_upn, arg_aadId, arg_tenantId, arg_authorityURL]) as List<Object?>?;
+    final List<Object?>? replyList = await channel
+            .send(<Object?>[arg_upn, arg_aadId, arg_tenantId, arg_authorityURL])
+        as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -187,7 +318,8 @@ class IntuneApi {
     }
   }
 
-  Future<bool> unregisterAccountFromMAM(String arg_upn, String arg_aadId) async {
+  Future<bool> unregisterAccountFromMAM(
+      String arg_upn, String arg_aadId) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.IntuneApi.unregisterAccountFromMAM', codec,
         binaryMessenger: _binaryMessenger);
@@ -214,12 +346,16 @@ class IntuneApi {
     }
   }
 
-  Future<bool> createMicrosoftPublicClientApplication(Map<String?, Object?> arg_publicClientApplicationConfiguration, bool arg_enableLogs) async {
+  Future<bool> createMicrosoftPublicClientApplication(
+      Map<String?, Object?> arg_publicClientApplicationConfiguration,
+      bool arg_enableLogs) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.IntuneApi.createMicrosoftPublicClientApplication', codec,
+        'dev.flutter.pigeon.IntuneApi.createMicrosoftPublicClientApplication',
+        codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_publicClientApplicationConfiguration, arg_enableLogs]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(
+            <Object?>[arg_publicClientApplicationConfiguration, arg_enableLogs])
+        as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -238,6 +374,33 @@ class IntuneApi {
       );
     } else {
       return (replyList[0] as bool?)!;
+    }
+  }
+
+  Future<List<MSALUserAccount?>> getAccounts(String? arg_aadId) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.IntuneApi.getAccounts', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_aadId]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as List<Object?>?)!.cast<MSALUserAccount?>();
     }
   }
 
@@ -267,6 +430,33 @@ class IntuneApi {
       return (replyList[0] as bool?)!;
     }
   }
+
+  Future<bool> signOut(String? arg_aadId) async {
+    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.IntuneApi.signOut', codec,
+        binaryMessenger: _binaryMessenger);
+    final List<Object?>? replyList =
+        await channel.send(<Object?>[arg_aadId]) as List<Object?>?;
+    if (replyList == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+      );
+    } else if (replyList.length > 1) {
+      throw PlatformException(
+        code: replyList[0]! as String,
+        message: replyList[1] as String?,
+        details: replyList[2],
+      );
+    } else if (replyList[0] == null) {
+      throw PlatformException(
+        code: 'null-error',
+        message: 'Host platform returned null value for non-null return value.',
+      );
+    } else {
+      return (replyList[0] as bool?)!;
+    }
+  }
 }
 
 class _IntuneFlutterApiCodec extends StandardMessageCodec {
@@ -276,6 +466,15 @@ class _IntuneFlutterApiCodec extends StandardMessageCodec {
     if (value is MSALApiException) {
       buffer.putUint8(128);
       writeValue(buffer, value.encode());
+    } else if (value is MSALErrorResponse) {
+      buffer.putUint8(129);
+      writeValue(buffer, value.encode());
+    } else if (value is MSALUserAccount) {
+      buffer.putUint8(130);
+      writeValue(buffer, value.encode());
+    } else if (value is MSALUserAuthenticationDetails) {
+      buffer.putUint8(131);
+      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -284,8 +483,14 @@ class _IntuneFlutterApiCodec extends StandardMessageCodec {
   @override
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
-      case 128: 
+      case 128:
         return MSALApiException.decode(readValue(buffer)!);
+      case 129:
+        return MSALErrorResponse.decode(readValue(buffer)!);
+      case 130:
+        return MSALUserAccount.decode(readValue(buffer)!);
+      case 131:
+        return MSALUserAuthenticationDetails.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -295,40 +500,17 @@ class _IntuneFlutterApiCodec extends StandardMessageCodec {
 abstract class IntuneFlutterApi {
   static const MessageCodec<Object?> codec = _IntuneFlutterApiCodec();
 
-  Future<String?> acquireTokenSilent(String upn, String aadId, List<String?> scopes);
-
   void onEnrollmentNotification(String enrollmentResult);
 
   void onUnexpectedEnrollmentNotification();
 
   void onMsalException(MSALApiException exception);
 
+  void onErrorType(MSALErrorResponse response);
+
+  void onUserAuthenticationDetails(MSALUserAuthenticationDetails details);
+
   static void setup(IntuneFlutterApi? api, {BinaryMessenger? binaryMessenger}) {
-    {
-      final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.IntuneFlutterApi.acquireTokenSilent', codec,
-          binaryMessenger: binaryMessenger);
-      if (api == null) {
-        channel.setMessageHandler(null);
-      } else {
-        channel.setMessageHandler((Object? message) async {
-          assert(message != null,
-          'Argument for dev.flutter.pigeon.IntuneFlutterApi.acquireTokenSilent was null.');
-          final List<Object?> args = (message as List<Object?>?)!;
-          final String? arg_upn = (args[0] as String?);
-          assert(arg_upn != null,
-              'Argument for dev.flutter.pigeon.IntuneFlutterApi.acquireTokenSilent was null, expected non-null String.');
-          final String? arg_aadId = (args[1] as String?);
-          assert(arg_aadId != null,
-              'Argument for dev.flutter.pigeon.IntuneFlutterApi.acquireTokenSilent was null, expected non-null String.');
-          final List<String?>? arg_scopes = (args[2] as List<Object?>?)?.cast<String?>();
-          assert(arg_scopes != null,
-              'Argument for dev.flutter.pigeon.IntuneFlutterApi.acquireTokenSilent was null, expected non-null List<String?>.');
-          final String? output = await api.acquireTokenSilent(arg_upn!, arg_aadId!, arg_scopes!);
-          return output;
-        });
-      }
-    }
     {
       final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
           'dev.flutter.pigeon.IntuneFlutterApi.onEnrollmentNotification', codec,
@@ -338,7 +520,7 @@ abstract class IntuneFlutterApi {
       } else {
         channel.setMessageHandler((Object? message) async {
           assert(message != null,
-          'Argument for dev.flutter.pigeon.IntuneFlutterApi.onEnrollmentNotification was null.');
+              'Argument for dev.flutter.pigeon.IntuneFlutterApi.onEnrollmentNotification was null.');
           final List<Object?> args = (message as List<Object?>?)!;
           final String? arg_enrollmentResult = (args[0] as String?);
           assert(arg_enrollmentResult != null,
@@ -350,7 +532,8 @@ abstract class IntuneFlutterApi {
     }
     {
       final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-          'dev.flutter.pigeon.IntuneFlutterApi.onUnexpectedEnrollmentNotification', codec,
+          'dev.flutter.pigeon.IntuneFlutterApi.onUnexpectedEnrollmentNotification',
+          codec,
           binaryMessenger: binaryMessenger);
       if (api == null) {
         channel.setMessageHandler(null);
@@ -371,12 +554,54 @@ abstract class IntuneFlutterApi {
       } else {
         channel.setMessageHandler((Object? message) async {
           assert(message != null,
-          'Argument for dev.flutter.pigeon.IntuneFlutterApi.onMsalException was null.');
+              'Argument for dev.flutter.pigeon.IntuneFlutterApi.onMsalException was null.');
           final List<Object?> args = (message as List<Object?>?)!;
-          final MSALApiException? arg_exception = (args[0] as MSALApiException?);
+          final MSALApiException? arg_exception =
+              (args[0] as MSALApiException?);
           assert(arg_exception != null,
               'Argument for dev.flutter.pigeon.IntuneFlutterApi.onMsalException was null, expected non-null MSALApiException.');
           api.onMsalException(arg_exception!);
+          return;
+        });
+      }
+    }
+    {
+      final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.IntuneFlutterApi.onErrorType', codec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        channel.setMessageHandler(null);
+      } else {
+        channel.setMessageHandler((Object? message) async {
+          assert(message != null,
+              'Argument for dev.flutter.pigeon.IntuneFlutterApi.onErrorType was null.');
+          final List<Object?> args = (message as List<Object?>?)!;
+          final MSALErrorResponse? arg_response =
+              (args[0] as MSALErrorResponse?);
+          assert(arg_response != null,
+              'Argument for dev.flutter.pigeon.IntuneFlutterApi.onErrorType was null, expected non-null MSALErrorResponse.');
+          api.onErrorType(arg_response!);
+          return;
+        });
+      }
+    }
+    {
+      final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+          'dev.flutter.pigeon.IntuneFlutterApi.onUserAuthenticationDetails',
+          codec,
+          binaryMessenger: binaryMessenger);
+      if (api == null) {
+        channel.setMessageHandler(null);
+      } else {
+        channel.setMessageHandler((Object? message) async {
+          assert(message != null,
+              'Argument for dev.flutter.pigeon.IntuneFlutterApi.onUserAuthenticationDetails was null.');
+          final List<Object?> args = (message as List<Object?>?)!;
+          final MSALUserAuthenticationDetails? arg_details =
+              (args[0] as MSALUserAuthenticationDetails?);
+          assert(arg_details != null,
+              'Argument for dev.flutter.pigeon.IntuneFlutterApi.onUserAuthenticationDetails was null, expected non-null MSALUserAuthenticationDetails.');
+          api.onUserAuthenticationDetails(arg_details!);
           return;
         });
       }

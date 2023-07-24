@@ -1,4 +1,4 @@
-package com.hdfc.flutter_plugins.intune_android.msal
+package com.hdfc.flutter_plugins.intune_android
 
 
 import com.google.gson.Gson
@@ -10,13 +10,12 @@ import com.microsoft.identity.common.java.authorities.Authority
 import com.microsoft.identity.common.java.authorities.AuthorityDeserializer
 import com.microsoft.identity.common.java.authorities.AzureActiveDirectoryAudience
 import java.io.File
-import java.io.FileOutputStream
 
 class MSALConfigParser {
     companion object {
         public  fun  parse(map: Map<String, Any?>): File{
 
-            val gson: Gson = this.getGsonForLoadingConfiguration()
+            val gson: Gson = getGsonForLoadingConfiguration()
 
             val file = File.createTempFile("config", "json", null)
 

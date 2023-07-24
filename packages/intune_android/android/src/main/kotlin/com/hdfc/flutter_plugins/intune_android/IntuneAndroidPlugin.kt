@@ -2,28 +2,21 @@ package com.hdfc.flutter_plugins.intune_android
 
 import android.app.Activity
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import androidx.annotation.NonNull
-import com.hdfc.flutter_plugins.intune_android.authentication.AppAccount
-import com.hdfc.flutter_plugins.intune_android.authentication.AppSettings
-import com.hdfc.flutter_plugins.intune_android.authentication.AppSettings.getAccount
-import com.hdfc.flutter_plugins.intune_android.authentication.MAMAuthenticationCallback
-import com.hdfc.flutter_plugins.intune_android.authentication.MSALAuthenticationCallback
-import com.hdfc.flutter_plugins.intune_android.authentication.MSALUtil
-import com.hdfc.flutter_plugins.intune_android.authentication.MSALUtil.acquireToken
-import com.hdfc.flutter_plugins.intune_android.authentication.MSALUtil.signOutAccount
-import com.hdfc.flutter_plugins.intune_android.msal.MSALConfigParser
-import com.hdfc.flutter_plugins.intune_android.msal.MSALFlutterClient
 import com.microsoft.identity.client.AcquireTokenParameters
+import com.microsoft.identity.client.IAuthenticationResult
+import com.microsoft.identity.client.IMultipleAccountPublicClientApplication
+import com.microsoft.identity.client.IMultipleAccountPublicClientApplication.RemoveAccountCallback
 import com.microsoft.identity.client.IPublicClientApplication
+import com.microsoft.identity.client.ISingleAccountPublicClientApplication
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication
 import com.microsoft.identity.client.Prompt
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.intune.mam.client.app.MAMComponents
 import com.microsoft.intune.mam.client.notification.MAMNotificationReceiverRegistry
 import com.microsoft.intune.mam.policy.MAMEnrollmentManager
+import com.microsoft.intune.mam.policy.MAMServiceAuthenticationCallback
 import com.microsoft.intune.mam.policy.notification.MAMEnrollmentNotification
 import com.microsoft.intune.mam.policy.notification.MAMNotification
 import com.microsoft.intune.mam.policy.notification.MAMNotificationType
@@ -32,6 +25,8 @@ import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.BinaryMessenger
 import java.util.UUID
+import java.util.logging.Level
+import java.util.logging.Logger
 
 
 /** IntuneAndroidPlugin */
@@ -51,7 +46,7 @@ class IntuneAndroidPlugin : FlutterPlugin, IntuneApi, ActivityAware {
     private lateinit var context: Context
     private lateinit var reply: IntuneReply
     private var activity: Activity? = null
-    private var msalPublicClientApplication: IPublicClientApplication? = null
+    private var publicClientApplication: IPublicClientApplication? = null
 
     private fun setup(messenger: BinaryMessenger, context: Context) {
         try {
@@ -98,12 +93,33 @@ class IntuneAndroidPlugin : FlutterPlugin, IntuneApi, ActivityAware {
     }
 
     private fun registerAuthentication(): Boolean {
+        val app = publicClientApplication
+        if (app == null) {
+            Logger.getLogger("registerAuthentication").warning("PUBLIC CLIENT APP NOT INITIALIZED")
+            return false
+        }
         // Registers a MAMAuthenticationCallback, which will try to acquire access tokens for MAM.
         // This is necessary for proper MAM integration.
         // Registers a MAMAuthenticationCallback, which will try to acquire access tokens for MAM.
         // This is necessary for proper MAM integration.
         val mgr = getEnrollmentManager() ?: return false
-        mgr.registerAuthenticationCallback(MAMAuthenticationCallback(intuneFlutterApi))
+
+        mgr.registerAuthenticationCallback(object  : MAMServiceAuthenticationCallback {
+            override fun acquireToken(upn: String, aadId: String, resourceId: String): String? {
+                val logger = Logger.getLogger("registerAuthenticationCallback")
+                try {
+                    // Create the MSAL scopes by using the default scope of the passed in resource id.
+                    val scopes = arrayListOf("$resourceId/.default")
+                    val accessToken = IntuneUtils(app, reply).acquireTokenSilent(upn, aadId, scopes)
+                    if (accessToken != null) return accessToken
+                } catch (e: Throwable) {
+                    logger.log(Level.SEVERE, "Failed to get token for MAM Service", e)
+                    return null
+                }
+                logger.warning("Failed to get token for MAM Service - no result from MSAL")
+                return null
+            }
+        })
 
         /* This section shows how to register a MAMNotificationReceiver, so you can perform custom
              * actions based on MAM enrollment notifications.
@@ -151,13 +167,37 @@ class IntuneAndroidPlugin : FlutterPlugin, IntuneApi, ActivityAware {
         return true
     }
 
-    private fun getUserAccount(): AppAccount? {
-        // Get the account info from the app settings.
-        // If a user is not signed in, the account will be null.
-
-        // Get the account info from the app settings.
-        // If a user is not signed in, the account will be null.
-        return getAccount(context)
+    override fun getAccounts(aadId: String?, callback: (Result<List<MSALUserAccount?>>) -> Unit) {
+        val app = publicClientApplication
+       try {
+            if (app is IMultipleAccountPublicClientApplication) {
+                val accounts = app.accounts.map { account ->
+                    {
+                        MSALUserAccount(
+                                authority = account.authority,
+                                id = account.id,
+                                tenantId = account.tenantId,
+                                username = account.username,
+                        )
+                    }
+                }.map { it() }
+                return callback(Result.success(accounts))
+            } else if (app is ISingleAccountPublicClientApplication) {
+                val account = app.currentAccount?.currentAccount
+                if (account != null) {
+                    return callback(Result.success(listOf(MSALUserAccount(
+                            authority = account.authority,
+                            id = account.id,
+                            tenantId = account.tenantId,
+                            username = account.username,
+                    ))))
+                }
+            }
+            return callback(Result.failure(UnknownError()))
+        } catch (e: Throwable) {
+           Log.e(TAG, "Failed to get accounts", e)
+           return callback(Result.failure(e))
+        }
     }
 
     override fun createMicrosoftPublicClientApplication(publicClientApplicationConfiguration: Map<String, Any?>, enableLogs: Boolean, callback: (kotlin.Result<Boolean>) -> Unit) {
@@ -171,29 +211,20 @@ class IntuneAndroidPlugin : FlutterPlugin, IntuneApi, ActivityAware {
             val applicationCreatedListener = object : IPublicClientApplication.ApplicationCreatedListener {
                 override fun onCreated(application: IPublicClientApplication?) {
                     if (application != null) {
-                        msalPublicClientApplication = application
-                        Handler(Looper.getMainLooper()).post {
-                            callback(Result.success(true))
-                        }
+                        publicClientApplication = application
+                        callback(Result.success(true))
                     } else {
-                        Handler(Looper.getMainLooper()).post {
-                            callback(Result.success(false))
-                        }
+                        callback(Result.success(false))
                     }
                 }
 
                 override fun onError(exception: MsalException?) {
-                    Log.e(MSALFlutterClient.TAG, "createMicrosoftPublicClientApplication", exception)
+                    reply.onMsalException(exception)
                     if (exception != null) {
-                        Handler(Looper.getMainLooper()).post {
-                            reply.onMsalException(exception)
-                            callback(Result.failure(exception))
-                        }
+                        callback(Result.failure(exception))
                     } else {
-                        Log.d(MSALFlutterClient.TAG, "Error thrown without exception")
-                        Handler(Looper.getMainLooper()).post {
-                            callback(Result.failure(UnknownError()))
-                        }
+                        Log.d(TAG, "Error thrown without exception")
+                        callback(Result.failure(UnknownError()))
                     }
                 }
             }
@@ -202,93 +233,109 @@ class IntuneAndroidPlugin : FlutterPlugin, IntuneApi, ActivityAware {
                 context, configFile, applicationCreatedListener,
             )
         } catch (e: Throwable) {
-            Log.e(MSALFlutterClient.TAG, "Failed to initialize", e)
+            Log.e(TAG, "Failed to initialize", e)
             callback(Result.failure(e))
         }
     }
 
     override fun signIn(params: SignInParams, callback: (kotlin.Result<Boolean>) -> Unit) {
-        val app = msalPublicClientApplication
+        val app = publicClientApplication
 
-        val mUserAccount = getUserAccount()
-
-        // initiate the MSAL authentication on a background thread
-        // initiate the MSAL authentication on a background thread
-        val thread = Thread {
-            Log.i(TAG, "signIn: Starting interactive auth")
-            if (app == null) {
-                callback(Result.success(false))
-                return@Thread
-            }
-
-            try {
-                var loginHint: String? = null
-                if (mUserAccount != null) {
-                    loginHint = mUserAccount.upn
-                }
-                val authCallback = MSALAuthenticationCallback(context, intuneFlutterApi, getEnrollmentManager()!!)
-                var paramsBuilder = AcquireTokenParameters.Builder()
-                        .withScopes(params.scopes)
-                        .withCallback(authCallback)
-                        .startAuthorizationFromActivity(activity!!)
-                        .withLoginHint(loginHint)
-                if (params.authority != null) {
-                    paramsBuilder = paramsBuilder.fromAuthority(params.authority)
-                }
-                if (params.correlationId != null) {
-                    paramsBuilder = paramsBuilder.withCorrelationId(UUID.fromString(params.correlationId))
-                }
-                if (params.loginHint != null) {
-                    paramsBuilder = paramsBuilder.withLoginHint(params.loginHint)
-                }
-                if (params.prompt != null) {
-                    paramsBuilder = paramsBuilder.withPrompt(when (params.prompt) {
-                        MSALLoginPrompt.CONSENT -> Prompt.CONSENT
-                        MSALLoginPrompt.CREATE -> Prompt.CREATE
-                        MSALLoginPrompt.LOGIN -> Prompt.LOGIN
-                        MSALLoginPrompt.SELECTACCOUNT -> Prompt.SELECT_ACCOUNT
-                        MSALLoginPrompt.WHENREQUIRED -> Prompt.WHEN_REQUIRED
-                    })
-                }
-                if (params.extraScopesToConsent != null) {
-                    paramsBuilder = paramsBuilder.withOtherScopesToAuthorize(params.extraScopesToConsent)
-                }
-                app.acquireToken(paramsBuilder.build())
-                callback(Result.success(true))
-            } catch (e: MsalException) {
-                Log.e(TAG, "signIn: Failed MSAL sign in", e)
-                Handler(Looper.getMainLooper()).post {
-                    callback(Result.failure(e))
-                }
-            } catch (e: InterruptedException) {
-                Log.e(TAG,"signIn: Failed MSAL sign in", e)
-                Handler(Looper.getMainLooper()).post {
-                    callback(Result.failure(e))
-                }
-            } catch (e: Throwable) {
-                Handler(Looper.getMainLooper()).post {
-                    callback(Result.failure(e))
-                }
-            }
+        Log.i(TAG, "signIn: Starting interactive auth")
+        if (app == null) {
+            Log.i(TAG, "signIn: Initialize public client application required")
+            callback(Result.success(false))
+            return
         }
-        thread.start()
+
+        try {
+            var paramsBuilder = AcquireTokenParameters.Builder()
+                    .withScopes(params.scopes)
+                    .withCallback(object  : com.microsoft.identity.client.AuthenticationCallback {
+
+                        override fun onError(exc: MsalException?) {
+                            reply.onMsalException(exc)
+                        }
+
+                        override fun onSuccess(result: IAuthenticationResult) {
+                            return reply.onMSALAuthenticationResult(result)
+                        }
+
+                        override fun onCancel() {
+                            reply.onErrorType(MSALErrorType.USERCANCELLEDSIGNINREQUEST)
+                        }
+                    })
+                    .startAuthorizationFromActivity(activity!!)
+            if (params.authority != null) {
+                paramsBuilder = paramsBuilder.fromAuthority(params.authority)
+            }
+            if (params.correlationId != null) {
+                paramsBuilder = paramsBuilder.withCorrelationId(UUID.fromString(params.correlationId))
+            }
+            if (params.loginHint != null) {
+                paramsBuilder = paramsBuilder.withLoginHint(params.loginHint)
+            }
+            if (params.prompt != null) {
+                paramsBuilder = paramsBuilder.withPrompt(when (params.prompt) {
+                    MSALLoginPrompt.CONSENT -> Prompt.CONSENT
+                    MSALLoginPrompt.CREATE -> Prompt.CREATE
+                    MSALLoginPrompt.LOGIN -> Prompt.LOGIN
+                    MSALLoginPrompt.SELECTACCOUNT -> Prompt.SELECT_ACCOUNT
+                    MSALLoginPrompt.WHENREQUIRED -> Prompt.WHEN_REQUIRED
+                })
+            }
+            if (params.extraScopesToConsent != null) {
+                paramsBuilder = paramsBuilder.withOtherScopesToAuthorize(params.extraScopesToConsent)
+            }
+            app.acquireToken(paramsBuilder.build())
+            callback(Result.success(true))
+        } catch (e: MsalException) {
+            Log.e(TAG, "signIn: Failed MSAL sign in", e)
+            callback(Result.failure(e))
+        } catch (e: InterruptedException) {
+            Log.e(TAG,"signIn: Failed MSAL sign in", e)
+            callback(Result.failure(e))
+        } catch (e: Throwable) {
+            callback(Result.failure(e))
+        }
     }
 
-    fun signOut() {
+    override fun signOut(aadId: String?, callback: (kotlin.Result<Boolean>) -> Unit) {
         // Initiate an MSAL sign out on a background thread.
-        val effectiveAccount: AppAccount = getUserAccount() ?: return
-        val thread = Thread {
-            try {
-                signOutAccount(context, effectiveAccount.aadid)
-            } catch (e: MsalException) {
-                Log.e(TAG,"signOut: Failed to sign out user ${effectiveAccount.aadid}", e)
-            } catch (e: InterruptedException) {
-                Log.e(TAG,"signOut: Failed to sign out user ${effectiveAccount.aadid}", e)
+        val app = publicClientApplication
+        if (app is ISingleAccountPublicClientApplication) {
+            app.signOut(object: ISingleAccountPublicClientApplication.SignOutCallback {
+                override fun onSignOut() {
+                    callback(Result.success(true))
+                    Log.i(TAG,"signOut: complete")
+                }
+
+                override fun onError(exception: MsalException) {
+                    callback(Result.success(false))
+                    reply.onMsalException(exception)
+                }
+            })
+            return
+        } else if (app is IMultipleAccountPublicClientApplication) {
+            val account = if (aadId == null) {
+                app.accounts.firstOrNull()
+            } else {
+                app.getAccount(aadId)
             }
-            val mEnrollmentManager = getEnrollmentManager()
-            mEnrollmentManager?.unregisterAccountForMAM(effectiveAccount.upn, effectiveAccount.aadid)
-            AppSettings.clearAccount(context)
+            app.removeAccount(account, object : RemoveAccountCallback {
+                override fun onRemoved() {
+                    callback(Result.success(true))
+                    Log.i(TAG,"signOut: complete")
+                }
+
+                override fun onError(exception: MsalException) {
+                    callback(Result.success(false))
+                    reply.onMsalException(exception)
+                }
+            })
+        } else {
+            Log.i(TAG,"signOut: unknown account type")
+            callback(Result.success(false))
         }
-        thread.start()
     }
 }

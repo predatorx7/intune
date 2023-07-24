@@ -7,15 +7,6 @@ class InternalIntuneFlutterApi extends IntuneFlutterApi {
   InternalIntuneFlutterApi(this._delegate);
 
   @override
-  Future<String?> acquireTokenSilent(
-    String upn,
-    String aadId,
-    List<String?> scopes,
-  ) {
-    return _delegate.acquireTokenSilent(upn, aadId, scopes.whereType<String>());
-  }
-
-  @override
   void onEnrollmentNotification(String enrollmentResult) {
     return _delegate.onEnrollmentNotification(enrollmentResult);
   }
@@ -23,5 +14,20 @@ class InternalIntuneFlutterApi extends IntuneFlutterApi {
   @override
   void onUnexpectedEnrollmentNotification() {
     return _delegate.onUnexpectedEnrollmentNotification();
+  }
+
+  @override
+  void onErrorType(MSALErrorResponse response) {
+    return _delegate.onErrorType(response);
+  }
+
+  @override
+  void onMsalException(MSALApiException exception) {
+    return _delegate.onMsalException(exception);
+  }
+
+  @override
+  void onUserAuthenticationDetails(MSALUserAuthenticationDetails details) {
+    return _delegate.onUserAuthenticationDetails(details);
   }
 }

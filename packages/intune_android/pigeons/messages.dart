@@ -21,7 +21,7 @@ class SignInParams {
 enum MSALLoginPrompt {
   consent,
   create,
-  login, 
+  login,
   selectAccount,
   whenRequired,
 }
@@ -57,7 +57,13 @@ abstract class IntuneApi {
   );
 
   @async
+  List<MSALUserAccount?> getAccounts(String? aadId);
+
+  @async
   bool signIn(SignInParams params);
+
+  @async
+  bool signOut(String? aadId);
 }
 
 class MSALApiException {
@@ -69,14 +75,65 @@ class MSALApiException {
   const MSALApiException(this.errorCode, this.message, this.stackTraceAsString);
 }
 
+enum MSALErrorType {
+  intuneAppProtectionPolicyRequired,
+  userCancelledSignInRequest,
+  unknown,
+}
+
+class MSALErrorResponse {
+  final MSALErrorType errorType;
+
+  const MSALErrorResponse(this.errorType);
+}
+
+class MSALUserAccount {
+  final String authority;
+
+  /// aadid
+  final String id;
+  final String? idToken;
+  final String tenantId;
+
+  /// upn
+  final String username;
+
+  const MSALUserAccount({
+    required this.authority,
+    required this.id,
+    this.idToken,
+    required this.tenantId,
+    required this.username,
+  });
+}
+
+class MSALUserAuthenticationDetails {
+  final String accessToken;
+  final MSALUserAccount account;
+  final String authenticationScheme;
+  final int? correlationId;
+  final String expiresOnISO8601;
+  final List<String?> scope;
+
+  const MSALUserAuthenticationDetails({
+    required this.accessToken,
+    required this.account,
+    required this.authenticationScheme,
+    this.correlationId,
+    required this.expiresOnISO8601,
+    required this.scope,
+  });
+}
+
 @FlutterApi()
 abstract class IntuneFlutterApi {
-  @async
-  String? acquireTokenSilent(String upn, String aadId, List<String> scopes);
-
   void onEnrollmentNotification(String enrollmentResult);
 
   void onUnexpectedEnrollmentNotification();
 
   void onMsalException(MSALApiException exception);
+
+  void onErrorType(MSALErrorResponse response);
+
+  void onUserAuthenticationDetails(MSALUserAuthenticationDetails details);
 }

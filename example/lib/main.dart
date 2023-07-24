@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intune/intune.dart';
+import 'package:intune_android/messages.g.dart';
 
 void main() {
   runApp(const MyApp());
@@ -8,7 +9,10 @@ void main() {
 class IntuneAndroidCallbackImpl extends IntuneAndroidCallback {
   @override
   Future<String?> acquireTokenSilent(
-      String upn, String aadId, Iterable<String> scopes) {
+    String upn,
+    String aadId,
+    Iterable<String> scopes,
+  ) {
     // TODO: implement acquireTokenSilent
     throw UnimplementedError();
   }
@@ -21,6 +25,23 @@ class IntuneAndroidCallbackImpl extends IntuneAndroidCallback {
   @override
   void onUnexpectedEnrollmentNotification() {
     print('onUnexpectedEnrollmentNotification');
+  }
+
+  @override
+  void onErrorType(MSALErrorResponse response) {
+    // TODO: implement onErrorType
+  }
+
+  @override
+  void onMsalException(MSALApiException exception) {
+    // TODO: implement onMsalException
+  }
+
+  @override
+  void onUserAuthenticationDetails(MSALUserAuthenticationDetails details) {
+    final account = details.account;
+    intune.registerAccount(
+        account.username, account.id, account.tenantId, account.authority);
   }
 }
 
@@ -88,7 +109,7 @@ class _MyHomePageState extends State<MyHomePage> {
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
-                intune.registerAccount(upn, aadId, tenantId, authorityURL);
+                intune.signIn(SignInParams(scopes: scopes));
               },
               child: const Text('Login'),
             ),
@@ -96,7 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 intune.unregisterAccount(upn, aadId);
               },
-              child: const Text('Login'),
+              child: const Text('Logout'),
             ),
           ],
         ),
