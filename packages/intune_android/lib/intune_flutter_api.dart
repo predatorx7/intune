@@ -7,7 +7,7 @@ class InternalIntuneFlutterApi extends IntuneFlutterApi {
   InternalIntuneFlutterApi(this._delegate);
 
   @override
-  void onEnrollmentNotification(String enrollmentResult) {
+  void onEnrollmentNotification(MAMEnrollmentStatusResult enrollmentResult) {
     return _delegate.onEnrollmentNotification(enrollmentResult);
   }
 

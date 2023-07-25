@@ -8,15 +8,17 @@ import com.microsoft.identity.client.IPublicClientApplication
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication
 import com.microsoft.identity.client.SilentAuthenticationCallback
 import com.microsoft.identity.client.exception.MsalException
+import com.microsoft.identity.client.exception.MsalUiRequiredException
 import java.util.logging.Level
 import java.util.logging.Logger
+
 
 class IntuneUtils(private val app: IPublicClientApplication, private val reply: IntuneReply) {
     companion object {
         private val LOGGER = Logger.getLogger(IntuneUtils::class.java.name)
     }
 
-    private fun getAccount(aadId: String): IAccount? {
+    fun getAccount(aadId: String): IAccount? {
         if (app is IMultipleAccountPublicClientApplication) {
             return app.getAccount(aadId)
         } else if (app is ISingleAccountPublicClientApplication) {
@@ -34,12 +36,15 @@ class IntuneUtils(private val app: IPublicClientApplication, private val reply: 
     }
 
     fun acquireTokenSilent(
-            upn: String,
             aadId: String,
             scopes: List<String>,
-    ): String? {
+    ): IAuthenticationResult? {
         try {
-            val account = getAccount(aadId) ?: return null
+            val account = getAccount(aadId)
+            if (account == null) {
+                reply.onMsalException(MsalUiRequiredException(MsalUiRequiredException.NO_ACCOUNT_FOUND, "no account found for $aadId"))
+                return null
+            }
             val params = AcquireTokenSilentParameters.Builder()
                     .forAccount(account)
                     .fromAuthority(account.authority)
@@ -56,12 +61,9 @@ class IntuneUtils(private val app: IPublicClientApplication, private val reply: 
                         override fun onError(exception: MsalException?) {
                             reply.onMsalException(exception)
                         }
-                    }
-                    )
+                    })
                     .build()
-            val result = app.acquireTokenSilent(params)
-
-            return result.accessToken
+            return app.acquireTokenSilent(params)
         } catch (e: Throwable) {
             LOGGER.log(Level.SEVERE, "Failed to get token silently", e)
         }

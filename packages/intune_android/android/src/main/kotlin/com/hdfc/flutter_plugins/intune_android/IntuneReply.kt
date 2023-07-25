@@ -9,7 +9,7 @@ import io.flutter.plugin.common.BinaryMessenger
 
 class IntuneReply(messenger: BinaryMessenger) {
     companion object {
-        val TAG = "IntuneReply"
+        const val TAG = "IntuneReply"
     }
 
     private val intuneFlutterApi: IntuneFlutterApi
@@ -35,18 +35,16 @@ class IntuneReply(messenger: BinaryMessenger) {
                 // The user cannot be considered "signed in" at this point, so don't save it to the settings.
                 // val mUserAccount = AppAccount(upn, aadid, tenantId, authorityURL)
 
-                Log.i("msal_auth", "MsalIntuneAppProtectionPolicyRequiredException received.")
+                Log.i(TAG, "MsalIntuneAppProtectionPolicyRequiredException received.")
                 Log.i(
-                        "msal_auth",
+                        TAG,
                         "Data from broker: UPN: $upn; AAD ID: $aadid; Tenant ID: $tenantId; Authority: $authorityURL",
                 )
                 onErrorType(MSALErrorType.INTUNEAPPPROTECTIONPOLICYREQUIRED)
             }
-
             is MsalUserCancelException -> {
                 onErrorType(MSALErrorType.USERCANCELLEDSIGNINREQUEST)
             }
-
             else -> {
                 onErrorType(MSALErrorType.UNKNOWN)
             }
@@ -66,9 +64,9 @@ class IntuneReply(messenger: BinaryMessenger) {
         }
     }
 
-    fun onEnrollmentNotification(enrollmentResult: String) {
+    fun onEnrollmentNotification(enrollmentResult: MAMEnrollmentStatus?) {
         Log.d(IntuneAndroidPlugin.TAG, "Enrollment Receiver $enrollmentResult")
-        intuneFlutterApi.onEnrollmentNotification(enrollmentResult) {
+        intuneFlutterApi.onEnrollmentNotification(MAMEnrollmentStatusResult(enrollmentResult)) {
             Log.d(IntuneAndroidPlugin.TAG, "Enrollment Receiver result \"$enrollmentResult\" sent to flutter")
         }
     }

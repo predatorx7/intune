@@ -1,91 +1,87 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
-import 'package:intune_android/intune_android.dart';
-import 'package:intune_android/messages.g.dart';
 import 'package:intune_platform_interface/intune_platform_interface.dart';
+import 'package:intune_android/intune_android.dart';
 
-export 'package:intune_android/messages.g.dart';
 export 'package:intune_platform_interface/intune_platform_interface.dart'
     show IntunePlatform;
-export 'package:intune_android/intune_android.dart'
-    show IntuneAndroid, IntuneAndroidCallback;
+export 'package:intune_android/intune_android.dart';
 export 'package:intune_ios/intune_ios.dart' show IntuneIos;
 
 IntunePlatform get _platform => IntunePlatform.instance;
 
-class Intune {
-  Intune();
+typedef PublicClientApplicationConfiguration = Map<String?, Object?>;
 
-  Future<bool> registerAuthentication() {
-    return _platform.registerAuthentication();
+class AndroidPublicClientApplication {
+  AndroidPublicClientApplication();
+
+  IntuneAndroid get _intune => _platform as IntuneAndroid;
+
+  Future<bool> updateConfiguration({
+    required PublicClientApplicationConfiguration
+        publicClientApplicationConfiguration,
+    bool forceCreation = false,
+    bool enableLogs = kDebugMode,
+  }) {
+    return _intune.createMicrosoftPublicClientApplication(
+      publicClientApplicationConfiguration,
+      forceCreation,
+      enableLogs,
+    );
   }
 
-  Future<bool> registerAccount(
+  Future<Iterable<MSALUserAccount>> getAccounts(
+    String? aadId,
+  ) {
+    return _intune.getAccounts(aadId);
+  }
+
+  Future<bool> signIn(AcquireTokenParams params) {
+    return _intune.signIn(params);
+  }
+
+  Future<bool> signInSilently(AcquireTokenSilentlyParams params) {
+    return _intune.signInSilently(params);
+  }
+
+  Future<bool> signInSilentlyWithAccount(String aadId, List<String?> scopes) {
+    return _intune.signInSilentlyWithAccount(aadId, scopes);
+  }
+
+  Future<bool> signOut(
+    String? aadId,
+  ) {
+    return _intune.signOut(aadId);
+  }
+}
+
+class AndroidEnrollmentManager {
+  IntuneAndroid get _intune => _platform as IntuneAndroid;
+
+  Future<bool> registerAuthentication() {
+    return _intune.registerAuthentication();
+  }
+
+  void setAndroidReceiver(IntuneAndroidCallback receiver) {
+    return _intune.setAndroidReceiver(receiver);
+  }
+
+  void removeAndroidReceiver() {
+    return _intune.removeAndroidReceiver();
+  }
+
+  Future<bool> registerAccountForMAM(
     String upn,
     String aadId,
     String tenantId,
     String authorityURL,
   ) {
-    return _platform.registerAccountForMAM(
-      upn,
-      aadId,
-      tenantId,
-      authorityURL,
-    );
+    return _intune.registerAccountForMAM(upn, aadId, tenantId, authorityURL);
   }
 
-  Future<bool> unregisterAccount(
+  Future<bool> unregisterAccountFromMAM(
     String upn,
     String aadId,
   ) {
-    return _platform.unregisterAccountFromMAM(
-      upn,
-      aadId,
-    );
-  }
-
-  void registerReceivers(IntuneAndroidCallback receiver) {
-    final platform = _platform;
-    if (platform is IntuneAndroid) {
-      platform.setAndroidReceiver(receiver);
-    }
-  }
-
-  void unregisterReceivers() {
-    final platform = _platform;
-    if (platform is IntuneAndroid) {
-      platform.removeAndroidReceiver();
-    }
-  }
-
-  FutureOr<bool> signIn(SignInParams params) {
-    final platform = _platform;
-    if (platform is IntuneAndroid) {
-      return platform.signIn(params);
-    }
-    return false;
-  }
-
-  FutureOr<bool> signOut(String? aadId) {
-    final platform = _platform;
-    if (platform is IntuneAndroid) {
-      return platform.signOut(aadId);
-    }
-    return false;
-  }
-
-  FutureOr<bool> createMicrosoftPublicClientApplication({
-    required Map<String?, Object?> publicClientApplicationConfiguration,
-    bool enableLogs = kDebugMode,
-  }) {
-    final platform = _platform;
-    if (platform is IntuneAndroid) {
-      return platform.createMicrosoftPublicClientApplication(
-        publicClientApplicationConfiguration,
-        enableLogs,
-      );
-    }
-    return false;
+    return _intune.unregisterAccountFromMAM(upn, aadId);
   }
 }

@@ -1,6 +1,38 @@
 import 'package:pigeon/pigeon.dart';
 
-class SignInParams {
+enum MSALLoginPrompt {
+  consent,
+  create,
+  login,
+  selectAccount,
+  whenRequired,
+}
+
+enum MAMEnrollmentStatus {
+  AUTHORIZATION_NEEDED(0),
+  NOT_LICENSED(1),
+  ENROLLMENT_SUCCEEDED(2),
+  ENROLLMENT_FAILED(3),
+  WRONG_USER(4),
+  @Deprecated('')
+  MDM_ENROLLED(5),
+  UNENROLLMENT_SUCCEEDED(6),
+  UNENROLLMENT_FAILED(7),
+  PENDING(8),
+  COMPANY_PORTAL_REQUIRED(9);
+
+  final int mCode;
+
+  const MAMEnrollmentStatus(this.mCode);
+}
+
+enum MSALErrorType {
+  intuneAppProtectionPolicyRequired,
+  userCancelledSignInRequest,
+  unknown,
+}
+
+class AcquireTokenParams {
   final List<String?> scopes;
   final String? correlationId;
   final String? authority;
@@ -8,7 +40,7 @@ class SignInParams {
   final MSALLoginPrompt? prompt;
   final List<String?>? extraScopesToConsent;
 
-  const SignInParams({
+  const AcquireTokenParams({
     required this.scopes,
     this.correlationId,
     this.authority,
@@ -18,52 +50,22 @@ class SignInParams {
   });
 }
 
-enum MSALLoginPrompt {
-  consent,
-  create,
-  login,
-  selectAccount,
-  whenRequired,
+class AcquireTokenSilentlyParams {
+  final List<String?> scopes;
+  final String? correlationId;
+  final String? authority;
+
+  const AcquireTokenSilentlyParams({
+    required this.scopes,
+    this.correlationId,
+    this.authority,
+  });
 }
 
-@ConfigurePigeon(PigeonOptions(
-  input: 'pigeons/messages.dart',
-  dartOut: 'lib/messages.g.dart',
-  dartTestOut: 'test/messages_test.g.dart',
-  kotlinOptions: KotlinOptions(
-    package: 'com.hdfc.flutter_plugins.intune_android',
-  ),
-  kotlinOut:
-      'android/src/main/kotlin/com/hdfc/flutter_plugins/intune_android/Messages.kt',
-))
-@HostApi()
-abstract class IntuneApi {
-  // MAM
-  @async
-  bool registerAuthentication();
+class MAMEnrollmentStatusResult {
+  final MAMEnrollmentStatus? result;
 
-  @async
-  bool registerAccountForMAM(
-      String upn, String aadId, String tenantId, String authorityURL);
-
-  @async
-  bool unregisterAccountFromMAM(String upn, String aadId);
-
-  // MSAL
-  @async
-  bool createMicrosoftPublicClientApplication(
-    Map<String, Object?> publicClientApplicationConfiguration,
-    bool enableLogs,
-  );
-
-  @async
-  List<MSALUserAccount?> getAccounts(String? aadId);
-
-  @async
-  bool signIn(SignInParams params);
-
-  @async
-  bool signOut(String? aadId);
+  const MAMEnrollmentStatusResult(this.result);
 }
 
 class MSALApiException {
@@ -73,12 +75,6 @@ class MSALApiException {
   final String stackTraceAsString;
 
   const MSALApiException(this.errorCode, this.message, this.stackTraceAsString);
-}
-
-enum MSALErrorType {
-  intuneAppProtectionPolicyRequired,
-  userCancelledSignInRequest,
-  unknown,
 }
 
 class MSALErrorResponse {
@@ -125,9 +121,66 @@ class MSALUserAuthenticationDetails {
   });
 }
 
+@ConfigurePigeon(PigeonOptions(
+  input: 'pigeons/messages.dart',
+  dartOut: 'lib/messages.g.dart',
+  dartTestOut: 'test/messages_test.g.dart',
+  kotlinOptions: KotlinOptions(
+    package: 'com.hdfc.flutter_plugins.intune_android',
+  ),
+  kotlinOut:
+      'android/src/main/kotlin/com/hdfc/flutter_plugins/intune_android/Messages.kt',
+))
+@HostApi()
+abstract class IntuneApi {
+  // MAM
+  @async
+  bool registerAuthentication();
+
+  @async
+  bool registerAccountForMAM(
+    String upn,
+    String aadId,
+    String tenantId,
+    String authorityURL,
+  );
+
+  @async
+  bool unregisterAccountFromMAM(String upn, String aadId);
+
+  @async
+  MAMEnrollmentStatusResult getRegisteredAccountStatus(
+    String upn,
+    String aadId,
+  );
+
+  // MSAL
+  @async
+  bool createMicrosoftPublicClientApplication(
+    Map<String, Object?> publicClientApplicationConfiguration,
+    bool forceCreation,
+    bool enableLogs,
+  );
+
+  @async
+  List<MSALUserAccount?> getAccounts(String? aadId);
+
+  @async
+  bool signIn(AcquireTokenParams params);
+
+  @async
+  bool signInSilently(AcquireTokenSilentlyParams params);
+
+  @async
+  bool signInSilentlyWithAccount(String aadId, List<String?> scopes);
+
+  @async
+  bool signOut(String? aadId);
+}
+
 @FlutterApi()
 abstract class IntuneFlutterApi {
-  void onEnrollmentNotification(String enrollmentResult);
+  void onEnrollmentNotification(MAMEnrollmentStatusResult enrollmentResult);
 
   void onUnexpectedEnrollmentNotification();
 

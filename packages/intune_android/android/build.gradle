@@ -76,6 +76,12 @@ android {
         testImplementation 'org.mockito:mockito-core:5.0.0'
     }
 
+    intunemam {
+        report = true
+        verify = true
+//        incremental = true
+    }
+
     testOptions {
         unitTests.all {
             useJUnitPlatform()

@@ -13,7 +13,7 @@ import java.io.File
 
 class MSALConfigParser {
     companion object {
-        public  fun  parse(map: Map<String, Any?>): File{
+        fun  parse(map: Map<String, Any?>): File{
 
             val gson: Gson = getGsonForLoadingConfiguration()
 

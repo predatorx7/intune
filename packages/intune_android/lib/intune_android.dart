@@ -2,8 +2,9 @@ import 'package:intune_platform_interface/intune_platform_interface.dart';
 import 'intune_android_callback.dart';
 import 'intune_flutter_api.dart';
 import 'messages.g.dart' as messages;
-import 'messages.g.dart';
+
 export 'intune_android_callback.dart';
+export 'messages.g.dart';
 
 /// The Android implementation of [IntunePlatform].
 class IntuneAndroid extends IntunePlatform {
@@ -51,24 +52,34 @@ class IntuneAndroid extends IntunePlatform {
 
   Future<bool> createMicrosoftPublicClientApplication(
     Map<String?, Object?> publicClientApplicationConfiguration,
+    bool forceCreation,
     bool enableLogs,
   ) {
     return _api.createMicrosoftPublicClientApplication(
       publicClientApplicationConfiguration,
+      forceCreation,
       enableLogs,
     );
   }
 
-  Future<Iterable<MSALUserAccount>> getAccounts(
+  Future<Iterable<messages.MSALUserAccount>> getAccounts(
     String? aadId,
   ) {
     return _api
         .getAccounts(aadId)
-        .then((value) => value.whereType<MSALUserAccount>());
+        .then((value) => value.whereType<messages.MSALUserAccount>());
   }
 
-  Future<bool> signIn(SignInParams params) {
+  Future<bool> signIn(messages.AcquireTokenParams params) {
     return _api.signIn(params);
+  }
+
+  Future<bool> signInSilently(messages.AcquireTokenSilentlyParams params) {
+    return _api.signInSilently(params);
+  }
+
+  Future<bool> signInSilentlyWithAccount(String aadId, List<String?> scopes) {
+    return _api.signInSilentlyWithAccount(aadId, scopes);
   }
 
   Future<bool> signOut(

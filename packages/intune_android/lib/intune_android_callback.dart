@@ -7,7 +7,7 @@ abstract class IntuneAndroidCallback {
     Iterable<String> scopes,
   );
 
-  void onEnrollmentNotification(String enrollmentResult);
+  void onEnrollmentNotification(MAMEnrollmentStatusResult enrollmentResult);
 
   void onUnexpectedEnrollmentNotification();
 
