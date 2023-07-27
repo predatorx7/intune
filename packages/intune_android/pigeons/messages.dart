@@ -166,13 +166,13 @@ abstract class IntuneApi {
   List<MSALUserAccount?> getAccounts(String? aadId);
 
   @async
-  bool signIn(AcquireTokenParams params);
+  bool acquireToken(AcquireTokenParams params);
 
   @async
-  bool signInSilently(AcquireTokenSilentlyParams params);
+  bool acquireTokenSilently(AcquireTokenSilentlyParams params);
 
   @async
-  bool signInSilentlyWithAccount(String aadId, List<String?> scopes);
+  bool acquireTokenSilentlyWithAccount(String aadId, List<String?> scopes);
 
   @async
   bool signOut(String? aadId);
@@ -189,4 +189,6 @@ abstract class IntuneFlutterApi {
   void onErrorType(MSALErrorResponse response);
 
   void onUserAuthenticationDetails(MSALUserAuthenticationDetails details);
+
+  void onSignOut();
 }

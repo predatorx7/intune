@@ -240,7 +240,7 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
         }
     }
 
-    override fun signIn(params: AcquireTokenParams, callback: (Result<Boolean>) -> Unit) {
+    override fun acquireToken(params: AcquireTokenParams, callback: (Result<Boolean>) -> Unit) {
         val app = publicClientApplication
 
         Log.i(TAG, "signIn: Starting interactive auth")
@@ -304,7 +304,7 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
         }.start()
     }
 
-    override fun signInSilentlyWithAccount(aadId: String, scopes: List<String?>, callback: (Result<Boolean>) -> Unit) {
+    override fun acquireTokenSilentlyWithAccount(aadId: String, scopes: List<String?>, callback: (Result<Boolean>) -> Unit) {
         val app = publicClientApplication
         if (app == null) {
             Log.i(TAG, "signOut: public client application was not initialized")
@@ -344,7 +344,7 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
         }.start()
     }
 
-    override fun signInSilently(params: AcquireTokenSilentlyParams, callback: (Result<Boolean>) -> Unit) {
+    override fun acquireTokenSilently(params: AcquireTokenSilentlyParams, callback: (Result<Boolean>) -> Unit) {
         val app = publicClientApplication
         if (app == null) {
             Log.i(TAG, "signOut: public client application was not initialized")
@@ -388,6 +388,7 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
                             Handler(context.mainLooper).post {
                                 callback(Result.success(true))
                             }
+                            reply.onSignOut()
                             Log.i(TAG, "signOut: complete")
                         }
 

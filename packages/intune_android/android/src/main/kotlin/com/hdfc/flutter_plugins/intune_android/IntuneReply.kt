@@ -84,6 +84,12 @@ class IntuneReply(messenger: BinaryMessenger) {
         }
     }
 
+    fun onSignOut() {
+        intuneFlutterApi.onSignOut {
+            Log.d(IntuneAndroidPlugin.TAG, "onSignOut sent to flutter")
+        }
+    }
+
     fun onMSALAuthenticationResult(result: IAuthenticationResult) {
         val account = result.account
         val upn = account.username

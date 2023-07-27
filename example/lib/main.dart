@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intune/intune.dart';
-import 'package:intune_android/messages.g.dart';
 
 void main() {
+  setupIntune();
   runApp(const MyApp());
 }
 
@@ -18,7 +18,7 @@ class IntuneAndroidCallbackImpl extends IntuneAndroidCallback {
   }
 
   @override
-  void onEnrollmentNotification(String enrollmentResult) {
+  void onEnrollmentNotification(MAMEnrollmentStatusResult enrollmentResult) {
     print('enrollmentResult: $enrollmentResult');
   }
 
@@ -40,18 +40,35 @@ class IntuneAndroidCallbackImpl extends IntuneAndroidCallback {
   @override
   void onUserAuthenticationDetails(MSALUserAuthenticationDetails details) {
     final account = details.account;
-    intune.registerAccount(
-        account.username, account.id, account.tenantId, account.authority);
+    msalAccount = account;
+    enrMgr.registerAccountForMAM(
+      account.username,
+      account.id,
+      account.tenantId,
+      account.authority,
+    );
+  }
+
+  @override
+  void onSignOut() {
+    final a = msalAccount;
+    if (a == null) return;
+    enrMgr.unregisterAccountFromMAM(a.username, a.id);
   }
 }
 
-late final Intune intune;
+MSALUserAccount? msalAccount;
+final enrMgr = AndroidEnrollmentManager();
+final app = AndroidPublicClientApplication();
 
 void setupIntune() {
   IntuneAndroid.registerWith();
-  intune = Intune();
-  intune.registerReceivers(IntuneAndroidCallbackImpl());
-  intune.registerAuthentication();
+  app.updateConfiguration(
+    publicClientApplicationConfiguration: {},
+  );
+  enrMgr.setAndroidReceiver(IntuneAndroidCallbackImpl());
+  enrMgr.registerAuthentication();
+  //
 }
 
 class MyApp extends StatelessWidget {
@@ -109,7 +126,7 @@ class _MyHomePageState extends State<MyHomePage> {
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
-                intune.signIn(SignInParams(
+                app.signIn(AcquireTokenParams(
                   scopes: ['https://graph.microsoft.com/User.Read'],
                   authority:
                       'msauth://com.hdfc.irm/%2F56jD0%2FutKRWxj0sQxgm5d43G48%3D',

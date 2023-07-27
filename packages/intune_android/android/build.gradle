@@ -10,7 +10,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.1'
+        classpath 'com.android.tools.build:gradle:7.2.2'
         // Include the MAM build plugin and Javassist, which it depends on
         classpath "org.javassist:javassist:3.27.0-GA"
         classpath files("MAMSDK/com.microsoft.intune.mam.build.jar")
@@ -35,7 +35,7 @@ apply plugin: 'kotlin-android'
  * https://docs.microsoft.com/en-us/intune/app-sdk-android#replace-classes-methods-and-activities-with-their-mam-equivalent
  * for more information.
  */
-apply plugin: 'com.microsoft.intune.mam'
+//apply plugin: 'com.microsoft.intune.mam'
 apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
@@ -76,11 +76,11 @@ android {
         testImplementation 'org.mockito:mockito-core:5.0.0'
     }
 
-    intunemam {
-        report = true
-        verify = true
-//        incremental = true
-    }
+//     intunemam {
+//         report = true
+//         verify = true
+// //        incremental = true
+//     }
 
     testOptions {
         unitTests.all {

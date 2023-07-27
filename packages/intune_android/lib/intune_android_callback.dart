@@ -16,4 +16,6 @@ abstract class IntuneAndroidCallback {
   void onMsalException(MSALApiException exception);
 
   void onUserAuthenticationDetails(MSALUserAuthenticationDetails details);
+
+  void onSignOut();
 }
