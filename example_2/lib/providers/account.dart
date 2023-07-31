@@ -1,5 +1,6 @@
 import 'package:example/intune/messages.g.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../intune/intune.dart';
 import '../intune/intune_android_callback.dart';
@@ -62,11 +63,28 @@ class AccountController extends Notifier<MSALUserAuthenticationDetails?>
 
   void update(MSALUserAuthenticationDetails details) {
     state = details;
+    saveAccountID(details.account.id);
   }
 }
 
-final accountProvider = NotifierProvider<AccountController, MSALUserAuthenticationDetails?>(
-    AccountController.new);
+Future<bool> saveAccountID(String id) async {
+  final pref = await SharedPreferences.getInstance();
+  return await pref.setString('aadid', id);
+}
+
+Future<String?> getAccountID() async {
+  final pref = await SharedPreferences.getInstance();
+  return pref.getString('aadid');
+}
+
+Future<bool> removeAccountID() async {
+  final pref = await SharedPreferences.getInstance();
+  return pref.remove('aadid');
+}
+
+final accountProvider =
+    NotifierProvider<AccountController, MSALUserAuthenticationDetails?>(
+        AccountController.new);
 final enrollmentManagerProvider = Provider((ref) => AndroidEnrollmentManager());
 final publicClientApplicationProvider =
     Provider((ref) => AndroidPublicClientApplication());
@@ -81,6 +99,7 @@ class SnackBarNotifier extends Notifier<String?> {
     state = value;
   }
 }
+
 class MAMEnrollmentStatusNotifier extends Notifier<MAMEnrollmentStatusResult?> {
   @override
   MAMEnrollmentStatusResult? build() {
@@ -95,4 +114,5 @@ class MAMEnrollmentStatusNotifier extends Notifier<MAMEnrollmentStatusResult?> {
 final snackbarMessageProvider =
     NotifierProvider<SnackBarNotifier, String?>(SnackBarNotifier.new);
 final enrollmentStatusProvider =
-    NotifierProvider<MAMEnrollmentStatusNotifier, MAMEnrollmentStatusResult?>(MAMEnrollmentStatusNotifier.new);
+    NotifierProvider<MAMEnrollmentStatusNotifier, MAMEnrollmentStatusResult?>(
+        MAMEnrollmentStatusNotifier.new);

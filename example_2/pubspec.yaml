@@ -13,6 +13,7 @@ dependencies:
   intune_platform_interface: ^0.1.0
   cupertino_icons: ^1.0.2
   flutter_riverpod: ^2.3.6
+  shared_preferences: ^2.2.0
 
 dev_dependencies:
   flutter_test:

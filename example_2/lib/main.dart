@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:example/providers/account.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'intune/intune_android.dart';
@@ -9,6 +10,11 @@ final rootContainer = ProviderContainer();
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   setupIntune();
+  PlatformDispatcher.instance.onError = (e, s) {
+    debugPrint(e.toString());
+    debugPrintStack(stackTrace: s);
+    return true;
+  };
   runApp(
     ProviderScope(
       parent: rootContainer,
@@ -61,6 +67,22 @@ class MyHomePage extends ConsumerStatefulWidget {
 
 class _MyHomePageState extends ConsumerState<MyHomePage> {
   @override
+  void initState() {
+    super.initState();
+    Future(() async {
+      final aadid = await getAccountID();
+      if (aadid == null) return null;
+      final app = ref.read(publicClientApplicationProvider);
+      app.signInSilentlyWithAccount(
+        aadid,
+        [
+          'https://graph.microsoft.com/User.Read',
+        ],
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     ref.listen(snackbarMessageProvider, (p, n) {
       if (p == n || n == null) return;
@@ -107,6 +129,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 return;
               }
               final app = ref.read(publicClientApplicationProvider);
+              removeAccountID();
               app.signOut(a.id).then((value) {
                 print('acquire token: $value');
                 ref.read(snackbarMessageProvider.notifier).msg('Logged out');
@@ -124,7 +147,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
             title: Text('MAM MAMEnrollmentStatusResult'),
           ),
           SelectableText(
-            json.encode(ref.watch(enrollmentStatusProvider)?.encode()),
+            ref.watch(enrollmentStatusProvider)?.result.toString() ?? '-',
           ),
           const ListTile(
             title: Text('MSAL User Auth details'),

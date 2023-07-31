@@ -1,5 +1,7 @@
 package com.hdfc.irm
 
+import android.os.Handler
+import android.os.Looper
 import com.microsoft.identity.client.AcquireTokenSilentParameters
 import com.microsoft.identity.client.IAccount
 import com.microsoft.identity.client.IAuthenticationResult
@@ -66,14 +68,21 @@ class IntuneUtils(private val app: IPublicClientApplication, private val reply: 
                     .build()
             val result = app.acquireTokenSilent(params)
             if (result != null) {
-                reply.onMSALAuthenticationResult(result)
+                Handler(Looper.getMainLooper()).post {
+                    reply.onMSALAuthenticationResult(result)
+                }
             }
             return result
         } catch (e: Throwable) {
             if (e is MsalException) {
+                Handler(Looper.getMainLooper()).post {
+
                 reply.onMsalException(e)
+            }
             } else {
-                reply.onErrorType(MSALErrorType.UNKNOWN)
+                Handler(Looper.getMainLooper()).post {
+                    reply.onErrorType(MSALErrorType.UNKNOWN)
+                }
             }
             LOGGER.log(Level.SEVERE, "Failed to get token silently", e)
         }
