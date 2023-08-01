@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <application
-        android:label="example"
+        android:label="Intune example"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -24,6 +26,25 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.microsoft.identity.client.BrowserTabActivity"
+            android:exported="true">
+            <!-- android:launchMode="singleTask" -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="msauth"
+                    android:host="com.hdfc.irm"
+                    android:path="//56jD0/utKRWxj0sQxgm5d43G48=" />
+                    <!-- android:path="/auth" /> -->
+                    <!-- android:path="/%2F56jD0%2FutKRWxj0sQxgm5d43G48%3D" /> --> 
+            </intent-filter>
+        </activity>
+        <meta-data android:name="com.microsoft.intune.mam.AllowIsolatedProcesses" android:value="true" />
+        <meta-data android:name="com.microsoft.intune.mam.MAMPolicyRequired" android:value="true" />
+        <meta-data android:name="com.microsoft.intune.mam.DefaultMAMServiceEnrollment" android:value="true" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

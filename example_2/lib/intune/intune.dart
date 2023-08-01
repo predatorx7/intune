@@ -41,10 +41,6 @@ class AndroidPublicClientApplication {
     return _intune.signInSilently(params);
   }
 
-  Future<bool> signInSilentlyWithAccount(String aadId, List<String?> scopes) {
-    return _intune.signInSilentlyWithAccount(aadId, scopes);
-  }
-
   Future<bool> signOut(
     String? aadId,
   ) {

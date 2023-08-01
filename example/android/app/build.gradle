@@ -27,13 +27,13 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+apply plugin: 'com.android.application'
 /*
  * Apply the MAM SDK plugin to this project. This will perform Intune class replacements automatically, see
  * https://docs.microsoft.com/en-us/intune/app-sdk-android#replace-classes-methods-and-activities-with-their-mam-equivalent
  * for more information.
  */
-//apply plugin: 'com.microsoft.intune.mam'
-apply plugin: 'com.android.application'
+apply plugin: 'com.microsoft.intune.mam'
 apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
@@ -109,5 +109,5 @@ flutter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-//    implementation files('app/MAMSDK/Microsoft.Intune.MAM.SDK.aar')
+    implementation files("${rootDir.path}/app/MAMSDK/Microsoft.Intune.MAM.SDK.aar")
 }

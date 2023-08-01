@@ -1,8 +1,12 @@
 group 'com.hdfc.intune_android'
 version '1.0-SNAPSHOT'
 
+configurations.maybeCreate("default")
+artifacts.add("default", file('Microsoft.Intune.MAM.SDK.aar'))
+
 buildscript {
-    ext.kotlin_version = '1.7.10'
+    // Kotlin v 1.7.10 doesn't work with this plugin
+    ext.kotlin_version = '1.6.21'
     ext.msal_version = '4.1.0'
     repositories {
         google()
@@ -10,10 +14,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.2.2'
-        // Include the MAM build plugin and Javassist, which it depends on
-        classpath "org.javassist:javassist:3.27.0-GA"
-        classpath files("MAMSDK/com.microsoft.intune.mam.build.jar")
+        classpath 'com.android.tools.build:gradle:7.3.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -30,12 +31,6 @@ allprojects {
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-/*
- * Apply the MAM SDK plugin to this project. This will perform Intune class replacements automatically, see
- * https://docs.microsoft.com/en-us/intune/app-sdk-android#replace-classes-methods-and-activities-with-their-mam-equivalent
- * for more information.
- */
-//apply plugin: 'com.microsoft.intune.mam'
 apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
@@ -68,19 +63,12 @@ android {
         // Include MSAL
         implementation "com.microsoft.identity.client:msal:$msal_version"
         // Include the MAM SDK
-        implementation files('MAMSDK/Microsoft.Intune.MAM.SDK.aar')
-
+        implementation files("${rootDir.path}/app/MAMSDK/Microsoft.Intune.MAM.SDK.aar")
         coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.2'
 
         testImplementation 'org.jetbrains.kotlin:kotlin-test'
         testImplementation 'org.mockito:mockito-core:5.0.0'
     }
-
-//     intunemam {
-//         report = true
-//         verify = true
-// //        incremental = true
-//     }
 
     testOptions {
         unitTests.all {

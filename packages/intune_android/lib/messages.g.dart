@@ -22,6 +22,7 @@ enum MAMEnrollmentStatus {
   ENROLLMENT_SUCCEEDED,
   ENROLLMENT_FAILED,
   WRONG_USER,
+  /// Removed in android
   MDM_ENROLLED,
   UNENROLLMENT_SUCCEEDED,
   UNENROLLMENT_FAILED,
@@ -85,31 +86,31 @@ class AcquireTokenParams {
 
 class AcquireTokenSilentlyParams {
   AcquireTokenSilentlyParams({
+    required this.aadId,
     required this.scopes,
     this.correlationId,
-    this.authority,
   });
+
+  String aadId;
 
   List<String?> scopes;
 
   String? correlationId;
 
-  String? authority;
-
   Object encode() {
     return <Object?>[
+      aadId,
       scopes,
       correlationId,
-      authority,
     ];
   }
 
   static AcquireTokenSilentlyParams decode(Object result) {
     result as List<Object?>;
     return AcquireTokenSilentlyParams(
-      scopes: (result[0] as List<Object?>?)!.cast<String?>(),
-      correlationId: result[1] as String?,
-      authority: result[2] as String?,
+      aadId: result[0]! as String,
+      scopes: (result[1] as List<Object?>?)!.cast<String?>(),
+      correlationId: result[2] as String?,
     );
   }
 }
@@ -536,33 +537,6 @@ class IntuneApi {
         binaryMessenger: _binaryMessenger);
     final List<Object?>? replyList =
         await channel.send(<Object?>[arg_params]) as List<Object?>?;
-    if (replyList == null) {
-      throw PlatformException(
-        code: 'channel-error',
-        message: 'Unable to establish connection on channel.',
-      );
-    } else if (replyList.length > 1) {
-      throw PlatformException(
-        code: replyList[0]! as String,
-        message: replyList[1] as String?,
-        details: replyList[2],
-      );
-    } else if (replyList[0] == null) {
-      throw PlatformException(
-        code: 'null-error',
-        message: 'Host platform returned null value for non-null return value.',
-      );
-    } else {
-      return (replyList[0] as bool?)!;
-    }
-  }
-
-  Future<bool> acquireTokenSilentlyWithAccount(String arg_aadId, List<String?> arg_scopes) async {
-    final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
-        'dev.flutter.pigeon.intune_android.IntuneApi.acquireTokenSilentlyWithAccount', codec,
-        binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_aadId, arg_scopes]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',

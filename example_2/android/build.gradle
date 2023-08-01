@@ -1,5 +1,5 @@
 buildscript {
-//    ext.kotlin_version = '1.7.10'
+    // Kotlin v 1.7.10 doesn't work with this plugin
     ext.kotlin_version = '1.6.21'
     ext.msal_version = '4.1.0'
     repositories {
@@ -8,9 +8,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.2.2'
-//        classpath 'com.android.tools.build:gradle:7.3.0'
-//        classpath 'com.android.tools.build:gradle:4.0.2'
+        classpath 'com.android.tools.build:gradle:7.3.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.javassist:javassist:3.27.0-GA"
         classpath files("app/MAMSDK/com.microsoft.intune.mam.build.jar")

@@ -1,5 +1,7 @@
 package com.hdfc.flutter_plugins.intune_android
 
+import android.os.Handler
+import android.os.Looper
 import com.microsoft.identity.client.AcquireTokenSilentParameters
 import com.microsoft.identity.client.IAccount
 import com.microsoft.identity.client.IAuthenticationResult
@@ -49,22 +51,39 @@ class IntuneUtils(private val app: IPublicClientApplication, private val reply: 
                     .forAccount(account)
                     .fromAuthority(account.authority)
                     .withScopes(scopes)
-                    .withCallback(object : SilentAuthenticationCallback {
-                        override fun onSuccess(authenticationResult: IAuthenticationResult?) {
-                            if (authenticationResult != null) {
-                                reply.onMSALAuthenticationResult(authenticationResult)
-                            } else {
-                                reply.onErrorType(MSALErrorType.UNKNOWN)
-                            }
-                        }
-
-                        override fun onError(exception: MsalException?) {
-                            reply.onMsalException(exception)
-                        }
-                    })
+                    // dont provide callback for synchronous methods
+//                    .withCallback(object : SilentAuthenticationCallback {
+//                        override fun onSuccess(authenticationResult: IAuthenticationResult?) {
+//                            if (authenticationResult != null) {
+//                                reply.onMSALAuthenticationResult(authenticationResult)
+//                            } else {
+//                                reply.onErrorType(MSALErrorType.UNKNOWN)
+//                            }
+//                        }
+//
+//                        override fun onError(exception: MsalException?) {
+//                            reply.onMsalException(exception)
+//                        }
+//                    })
                     .build()
-            return app.acquireTokenSilent(params)
+            val result = app.acquireTokenSilent(params)
+            if (result != null) {
+                Handler(Looper.getMainLooper()).post {
+                    reply.onMSALAuthenticationResult(result)
+                }
+            }
+            return result
         } catch (e: Throwable) {
+            if (e is MsalException) {
+                Handler(Looper.getMainLooper()).post {
+
+                reply.onMsalException(e)
+            }
+            } else {
+                Handler(Looper.getMainLooper()).post {
+                    reply.onErrorType(MSALErrorType.UNKNOWN)
+                }
+            }
             LOGGER.log(Level.SEVERE, "Failed to get token silently", e)
         }
         return null

@@ -104,6 +104,12 @@ android {
     }
 }
 
+//     intunemam {
+//         report = true
+//         verify = true
+// //        incremental = true
+//     }
+
 flutter {
     source '../..'
 }

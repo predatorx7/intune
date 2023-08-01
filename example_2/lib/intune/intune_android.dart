@@ -78,10 +78,6 @@ class IntuneAndroid extends IntunePlatform {
     return _api.acquireTokenSilently(params);
   }
 
-  Future<bool> signInSilentlyWithAccount(String aadId, List<String?> scopes) {
-    return _api.acquireTokenSilentlyWithAccount(aadId, scopes);
-  }
-
   Future<bool> signOut(
     String? aadId,
   ) {

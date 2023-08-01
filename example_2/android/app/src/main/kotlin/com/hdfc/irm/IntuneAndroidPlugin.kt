@@ -19,7 +19,7 @@ class IntuneAndroidPlugin : FlutterPlugin, ActivityAware {
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         try {
             // recommended in onCreate of activity. And should not be used in production builds.
-            MAMStrictMode.enable()
+            // MAMStrictMode.enable()
             Log.i(TAG, "Setting up IntuneAndroidPlugin")
             val messenger = flutterPluginBinding.binaryMessenger
             val reply = IntuneReply(messenger)

@@ -63,6 +63,7 @@ enum class MAMEnrollmentStatus(val raw: Int) {
   ENROLLMENT_SUCCEEDED(2),
   ENROLLMENT_FAILED(3),
   WRONG_USER(4),
+  /** Removed in android */
   MDM_ENROLLED(5),
   UNENROLLMENT_SUCCEEDED(6),
   UNENROLLMENT_FAILED(7),
@@ -126,25 +127,25 @@ data class AcquireTokenParams (
 
 /** Generated class from Pigeon that represents data sent in messages. */
 data class AcquireTokenSilentlyParams (
+  val aadId: String,
   val scopes: List<String?>,
-  val correlationId: String? = null,
-  val authority: String? = null
+  val correlationId: String? = null
 
 ) {
   companion object {
     @Suppress("UNCHECKED_CAST")
     fun fromList(list: List<Any?>): AcquireTokenSilentlyParams {
-      val scopes = list[0] as List<String?>
-      val correlationId = list[1] as String?
-      val authority = list[2] as String?
-      return AcquireTokenSilentlyParams(scopes, correlationId, authority)
+      val aadId = list[0] as String
+      val scopes = list[1] as List<String?>
+      val correlationId = list[2] as String?
+      return AcquireTokenSilentlyParams(aadId, scopes, correlationId)
     }
   }
   fun toList(): List<Any?> {
     return listOf<Any?>(
+      aadId,
       scopes,
       correlationId,
-      authority,
     )
   }
 }
@@ -368,7 +369,6 @@ interface IntuneApi {
   fun getAccounts(aadId: String?, callback: (Result<List<MSALUserAccount?>>) -> Unit)
   fun acquireToken(params: AcquireTokenParams, callback: (Result<Boolean>) -> Unit)
   fun acquireTokenSilently(params: AcquireTokenSilentlyParams, callback: (Result<Boolean>) -> Unit)
-  fun acquireTokenSilentlyWithAccount(aadId: String, scopes: List<String?>, callback: (Result<Boolean>) -> Unit)
   fun signOut(aadId: String?, callback: (Result<Boolean>) -> Unit)
 
   companion object {
@@ -531,27 +531,6 @@ interface IntuneApi {
             val args = message as List<Any?>
             val paramsArg = args[0] as AcquireTokenSilentlyParams
             api.acquireTokenSilently(paramsArg) { result: Result<Boolean> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(wrapError(error))
-              } else {
-                val data = result.getOrNull()
-                reply.reply(wrapResult(data))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.intune_android.IntuneApi.acquireTokenSilentlyWithAccount", codec)
-        if (api != null) {
-          channel.setMessageHandler { message, reply ->
-            val args = message as List<Any?>
-            val aadIdArg = args[0] as String
-            val scopesArg = args[1] as List<String?>
-            api.acquireTokenSilentlyWithAccount(aadIdArg, scopesArg) { result: Result<Boolean> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))

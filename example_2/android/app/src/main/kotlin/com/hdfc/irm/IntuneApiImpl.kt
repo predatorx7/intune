@@ -13,7 +13,6 @@ import com.microsoft.identity.client.IPublicClientApplication
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication
 import com.microsoft.identity.client.Prompt
-import com.microsoft.identity.client.PublicClientApplicationConfiguration
 import com.microsoft.identity.client.SilentAuthenticationCallback
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.exception.MsalUiRequiredException
@@ -320,68 +319,36 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
         }.start()
     }
 
-    override fun acquireTokenSilentlyWithAccount(aadId: String, scopes: List<String?>, callback: (Result<Boolean>) -> Unit) {
-        val app = publicClientApplication
-        if (app == null) {
-            Log.i(TAG, "signOut: public client application was not initialized")
-            return callback(Result.success(false))
-        }
-        val account = IntuneUtils(app, reply).getAccount(aadId)
-        if (account == null) {
-            Handler(Looper.getMainLooper()).post{ reply.onMsalException(MsalUiRequiredException(MsalUiRequiredException.NO_ACCOUNT_FOUND, "no account found for $aadId")) }
-            return callback(Result.success(false))
-        }
-        Thread {
-            try {
-                val params = AcquireTokenSilentParameters.Builder()
-                        .forAccount(account)
-                        .fromAuthority(account.authority)
-                        .withScopes(scopes)
-                        .withCallback(object : SilentAuthenticationCallback {
-                            override fun onSuccess(authenticationResult: IAuthenticationResult?) {
-                                if (authenticationResult != null) {
-                                    Handler(Looper.getMainLooper()).post{ reply.onMSALAuthenticationResult(authenticationResult) }
-                                } else {
-                                    Handler(Looper.getMainLooper()).post{ reply.onErrorType(MSALErrorType.UNKNOWN) }
-                                }
-                            }
-
-                            override fun onError(exception: MsalException?) {
-                                Handler(Looper.getMainLooper()).post{ reply.onMsalException(exception) }
-                            }
-                        })
-                        .build()
-                app.acquireTokenSilentAsync(params)
-                callback(Result.success(true))
-            } catch (e: Throwable) {
-                Log.e(TAG, "Failed to get token silently", e)
-                callback(Result.failure(e))
-            }
-        }.start()
-    }
-
     override fun acquireTokenSilently(params: AcquireTokenSilentlyParams, callback: (Result<Boolean>) -> Unit) {
         val app = publicClientApplication
         if (app == null) {
             Log.i(TAG, "signOut: public client application was not initialized")
             return callback(Result.success(false))
         }
+        val account = IntuneUtils(app, reply).getAccount(params.aadId)
+        if (account == null) {
+            Handler(Looper.getMainLooper()).post{ reply.onMsalException(MsalUiRequiredException(MsalUiRequiredException.NO_ACCOUNT_FOUND, "no account found for ${params.aadId}")) }
+            return callback(Result.success(false))
+        }
 
         Thread {
             var paramsBuilder = AcquireTokenSilentParameters.Builder()
                     .withScopes(params.scopes)
-                    .withCallback(object : com.microsoft.identity.client.SilentAuthenticationCallback {
+                    .forAccount(account)
+                    .fromAuthority(account.authority)
+                    .withCallback(object : SilentAuthenticationCallback {
                         override fun onError(exc: MsalException?) {
                             Handler(Looper.getMainLooper()).post{ reply.onMsalException(exc) }
                         }
 
-                        override fun onSuccess(result: IAuthenticationResult) {
-                            Handler(Looper.getMainLooper()).post{ reply.onMSALAuthenticationResult(result) }
+                        override fun onSuccess(result: IAuthenticationResult?) {
+                            if (result == null) {
+                                Handler(Looper.getMainLooper()).post{ reply.onErrorType(MSALErrorType.UNKNOWN) }
+                            } else {
+                                Handler(Looper.getMainLooper()).post { reply.onMSALAuthenticationResult(result) }
+                            }
                         }
                     })
-            if (params.authority != null) {
-                paramsBuilder = paramsBuilder.fromAuthority(params.authority)
-            }
             if (params.correlationId != null) {
                 paramsBuilder = paramsBuilder.withCorrelationId(UUID.fromString(params.correlationId))
             }

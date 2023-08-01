@@ -3,6 +3,7 @@ package com.hdfc.flutter_plugins.intune_android
 import android.app.Activity
 import android.content.Context
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.microsoft.identity.client.AcquireTokenParameters
 import com.microsoft.identity.client.AcquireTokenSilentParameters
@@ -12,11 +13,11 @@ import com.microsoft.identity.client.IPublicClientApplication
 import com.microsoft.identity.client.ISingleAccountPublicClientApplication
 import com.microsoft.identity.client.MultipleAccountPublicClientApplication
 import com.microsoft.identity.client.Prompt
-import com.microsoft.identity.client.PublicClientApplicationConfiguration
 import com.microsoft.identity.client.SilentAuthenticationCallback
 import com.microsoft.identity.client.exception.MsalException
 import com.microsoft.identity.client.exception.MsalUiRequiredException
 import com.microsoft.intune.mam.client.app.MAMComponents
+import com.microsoft.intune.mam.client.app.offline.OfflineComponents
 import com.microsoft.intune.mam.client.notification.MAMNotificationReceiverRegistry
 import com.microsoft.intune.mam.policy.MAMEnrollmentManager
 import com.microsoft.intune.mam.policy.MAMServiceAuthenticationCallback
@@ -61,7 +62,11 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
     }
 
     override fun registerAuthentication(callback: (Result<Boolean>) -> Unit) {
-        callback(Result.success(registerAuthentication()))
+        try {
+            callback(Result.success(registerAuthentication()))
+        } catch (e: Throwable) {
+            callback(Result.failure(e))
+        }
     }
 
     private fun registerAuthentication(): Boolean {
@@ -70,11 +75,17 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
             Log.w(TAG, "PUBLIC CLIENT APP NOT INITIALIZED")
             return false
         }
+        OfflineComponents.initialize(context)
+
         // Registers a MAMAuthenticationCallback, which will try to acquire access tokens for MAM.
         // This is necessary for proper MAM integration.
         // Registers a MAMAuthenticationCallback, which will try to acquire access tokens for MAM.
         // This is necessary for proper MAM integration.
-        val mgr = getEnrollmentManager() ?: return false
+        val mgr = getEnrollmentManager()
+        if (mgr == null) {
+            Log.i(TAG, "Enrollment manager is null")
+            return false
+        }
 
         mgr.registerAuthenticationCallback(object : MAMServiceAuthenticationCallback {
             override fun acquireToken(upn: String, aadId: String, resourceId: String): String? {
@@ -106,12 +117,16 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
         notificationRegistry.registerReceiver({ notification: MAMNotification? ->
             if (notification is MAMEnrollmentNotification) {
                 when (val result = notification.enrollmentResult) {
-                    null -> reply.onEnrollmentNotification(null)
-                    else -> reply.onEnrollmentNotification(enrollmentStatusResultFromEnrollmentManagerResult(result))
+                    null -> Handler(Looper.getMainLooper()).post {
+                        reply.onEnrollmentNotification(null)
+                    }
+                    else -> Handler(Looper.getMainLooper()).post {
+                        reply.onEnrollmentNotification(enrollmentStatusResultFromEnrollmentManagerResult(result))
+                    }
                 }
             } else {
                 Log.w(TAG, "Unknown notification received of type: ${notification?.type?.name}, content: ${notification.toString()}")
-                reply.onUnexpectedEnrollmentNotification()
+                Handler(Looper.getMainLooper()).post { reply.onUnexpectedEnrollmentNotification() }
             }
             true
         }, MAMNotificationType.MAM_ENROLLMENT_RESULT)
@@ -221,7 +236,7 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
                 }
 
                 override fun onError(exception: MsalException?) {
-                    reply.onMsalException(exception)
+                    Handler(Looper.getMainLooper()).post{ reply.onMsalException(exception) }
                     if (exception != null) {
                         callback(Result.failure(exception))
                     } else {
@@ -256,15 +271,15 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
                         .withScopes(params.scopes)
                         .withCallback(object : com.microsoft.identity.client.AuthenticationCallback {
                             override fun onError(exc: MsalException?) {
-                                reply.onMsalException(exc)
+                                Handler(Looper.getMainLooper()).post{ reply.onMsalException(exc) }
                             }
 
                             override fun onSuccess(result: IAuthenticationResult) {
-                                return reply.onMSALAuthenticationResult(result)
+                                Handler(Looper.getMainLooper()).post{ reply.onMSALAuthenticationResult(result) }
                             }
 
                             override fun onCancel() {
-                                reply.onErrorType(MSALErrorType.USERCANCELLEDSIGNINREQUEST)
+                                Handler(Looper.getMainLooper()).post{ reply.onErrorType(MSALErrorType.USERCANCELLEDSIGNINREQUEST) }
                             }
                         })
                         .startAuthorizationFromActivity(activity!!)
@@ -294,51 +309,11 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
             } catch (e: MsalException) {
                 Log.e(TAG, "signIn: Failed MSAL sign in", e)
                 callback(Result.failure(e))
-                reply.onMsalException(e)
+                Handler(Looper.getMainLooper()).post{ reply.onMsalException(e) }
             } catch (e: InterruptedException) {
                 Log.e(TAG, "signIn: Failed MSAL sign in", e)
                 callback(Result.failure(e))
             } catch (e: Throwable) {
-                callback(Result.failure(e))
-            }
-        }.start()
-    }
-
-    override fun acquireTokenSilentlyWithAccount(aadId: String, scopes: List<String?>, callback: (Result<Boolean>) -> Unit) {
-        val app = publicClientApplication
-        if (app == null) {
-            Log.i(TAG, "signOut: public client application was not initialized")
-            return callback(Result.success(false))
-        }
-        val account = IntuneUtils(app, reply).getAccount(aadId)
-        if (account == null) {
-            reply.onMsalException(MsalUiRequiredException(MsalUiRequiredException.NO_ACCOUNT_FOUND, "no account found for $aadId"))
-            return callback(Result.success(false))
-        }
-        Thread {
-            try {
-                val params = AcquireTokenSilentParameters.Builder()
-                        .forAccount(account)
-                        .fromAuthority(account.authority)
-                        .withScopes(scopes)
-                        .withCallback(object : SilentAuthenticationCallback {
-                            override fun onSuccess(authenticationResult: IAuthenticationResult?) {
-                                if (authenticationResult != null) {
-                                    reply.onMSALAuthenticationResult(authenticationResult)
-                                } else {
-                                    reply.onErrorType(MSALErrorType.UNKNOWN)
-                                }
-                            }
-
-                            override fun onError(exception: MsalException?) {
-                                reply.onMsalException(exception)
-                            }
-                        })
-                        .build()
-                app.acquireTokenSilentAsync(params)
-                callback(Result.success(true))
-            } catch (e: Throwable) {
-                Log.e(TAG, "Failed to get token silently", e)
                 callback(Result.failure(e))
             }
         }.start()
@@ -350,22 +325,30 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
             Log.i(TAG, "signOut: public client application was not initialized")
             return callback(Result.success(false))
         }
+        val account = IntuneUtils(app, reply).getAccount(params.aadId)
+        if (account == null) {
+            Handler(Looper.getMainLooper()).post{ reply.onMsalException(MsalUiRequiredException(MsalUiRequiredException.NO_ACCOUNT_FOUND, "no account found for ${params.aadId}")) }
+            return callback(Result.success(false))
+        }
 
         Thread {
             var paramsBuilder = AcquireTokenSilentParameters.Builder()
                     .withScopes(params.scopes)
-                    .withCallback(object : com.microsoft.identity.client.SilentAuthenticationCallback {
+                    .forAccount(account)
+                    .fromAuthority(account.authority)
+                    .withCallback(object : SilentAuthenticationCallback {
                         override fun onError(exc: MsalException?) {
-                            reply.onMsalException(exc)
+                            Handler(Looper.getMainLooper()).post{ reply.onMsalException(exc) }
                         }
 
-                        override fun onSuccess(result: IAuthenticationResult) {
-                            return reply.onMSALAuthenticationResult(result)
+                        override fun onSuccess(result: IAuthenticationResult?) {
+                            if (result == null) {
+                                Handler(Looper.getMainLooper()).post{ reply.onErrorType(MSALErrorType.UNKNOWN) }
+                            } else {
+                                Handler(Looper.getMainLooper()).post { reply.onMSALAuthenticationResult(result) }
+                            }
                         }
                     })
-            if (params.authority != null) {
-                paramsBuilder = paramsBuilder.fromAuthority(params.authority)
-            }
             if (params.correlationId != null) {
                 paramsBuilder = paramsBuilder.withCorrelationId(UUID.fromString(params.correlationId))
             }
@@ -388,13 +371,13 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
                             Handler(context.mainLooper).post {
                                 callback(Result.success(true))
                             }
-                            reply.onSignOut()
+                            Handler(Looper.getMainLooper()).post{ reply.onSignOut() }
                             Log.i(TAG, "signOut: complete")
                         }
 
                         override fun onError(exception: MsalException) {
                             Handler(context.mainLooper).post { callback(Result.success(false)) }
-                            reply.onMsalException(exception)
+                            Handler(Looper.getMainLooper()).post{ reply.onMsalException(exception) }
                         }
                     })
                 }
@@ -413,7 +396,7 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
 
                         override fun onError(exception: MsalException) {
                             Handler(context.mainLooper).post { callback(Result.success(false)) }
-                            reply.onMsalException(exception)
+                            Handler(Looper.getMainLooper()).post{ reply.onMsalException(exception) }
                         }
                     })
                 }

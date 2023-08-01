@@ -73,12 +73,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       final aadid = await getAccountID();
       if (aadid == null) return null;
       final app = ref.read(publicClientApplicationProvider);
-      app.signInSilentlyWithAccount(
-        aadid,
-        [
+      app.signInSilently(AcquireTokenSilentlyParams(
+        aadId: aadid,
+        scopes: [
           'https://graph.microsoft.com/User.Read',
         ],
-      );
+      ));
     });
   }
 

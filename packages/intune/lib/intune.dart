@@ -1,11 +1,9 @@
 import 'package:flutter/foundation.dart';
-import 'package:intune_platform_interface/intune_platform_interface.dart';
 import 'package:intune_android/intune_android.dart';
-
+import 'package:intune_platform_interface/intune_platform_interface.dart';
+export 'package:intune_android/intune_android.dart';
 export 'package:intune_platform_interface/intune_platform_interface.dart'
     show IntunePlatform;
-export 'package:intune_android/intune_android.dart';
-export 'package:intune_ios/intune_ios.dart' show IntuneIos;
 
 IntunePlatform get _platform => IntunePlatform.instance;
 
@@ -41,10 +39,6 @@ class AndroidPublicClientApplication {
 
   Future<bool> signInSilently(AcquireTokenSilentlyParams params) {
     return _intune.signInSilently(params);
-  }
-
-  Future<bool> signInSilentlyWithAccount(String aadId, List<String?> scopes) {
-    return _intune.signInSilentlyWithAccount(aadId, scopes);
   }
 
   Future<bool> signOut(

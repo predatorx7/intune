@@ -12,6 +12,8 @@ dependencies:
     sdk: flutter
   intune: ^0.1.0
   cupertino_icons: ^1.0.2
+  shared_preferences: ^2.2.0
+  flutter_riverpod: ^2.3.6
 
 dev_dependencies:
   flutter_test:

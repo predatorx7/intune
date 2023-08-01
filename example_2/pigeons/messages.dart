@@ -51,14 +51,14 @@ class AcquireTokenParams {
 }
 
 class AcquireTokenSilentlyParams {
+  final String aadId;
   final List<String?> scopes;
   final String? correlationId;
-  final String? authority;
 
   const AcquireTokenSilentlyParams({
+    required this.aadId,
     required this.scopes,
     this.correlationId,
-    this.authority,
   });
 }
 
@@ -128,7 +128,7 @@ class MSALUserAuthenticationDetails {
   kotlinOptions: KotlinOptions(
     package: 'com.hdfc.irm',
   ),
-  kotlinOut: 'android/src/main/kotlin/com/hdfc/irm/Messages.kt',
+  kotlinOut: 'android/app/src/main/kotlin/com/hdfc/irm/Messages.kt',
 ))
 @HostApi()
 abstract class IntuneApi {
@@ -169,9 +169,6 @@ abstract class IntuneApi {
 
   @async
   bool acquireTokenSilently(AcquireTokenSilentlyParams params);
-
-  @async
-  bool acquireTokenSilentlyWithAccount(String aadId, List<String?> scopes);
 
   @async
   bool signOut(String? aadId);

@@ -126,25 +126,25 @@ data class AcquireTokenParams (
 
 /** Generated class from Pigeon that represents data sent in messages. */
 data class AcquireTokenSilentlyParams (
+  val aadId: String,
   val scopes: List<String?>,
-  val correlationId: String? = null,
-  val authority: String? = null
+  val correlationId: String? = null
 
 ) {
   companion object {
     @Suppress("UNCHECKED_CAST")
     fun fromList(list: List<Any?>): AcquireTokenSilentlyParams {
-      val scopes = list[0] as List<String?>
-      val correlationId = list[1] as String?
-      val authority = list[2] as String?
-      return AcquireTokenSilentlyParams(scopes, correlationId, authority)
+      val aadId = list[0] as String
+      val scopes = list[1] as List<String?>
+      val correlationId = list[2] as String?
+      return AcquireTokenSilentlyParams(aadId, scopes, correlationId)
     }
   }
   fun toList(): List<Any?> {
     return listOf<Any?>(
+      aadId,
       scopes,
       correlationId,
-      authority,
     )
   }
 }
@@ -368,7 +368,6 @@ interface IntuneApi {
   fun getAccounts(aadId: String?, callback: (Result<List<MSALUserAccount?>>) -> Unit)
   fun acquireToken(params: AcquireTokenParams, callback: (Result<Boolean>) -> Unit)
   fun acquireTokenSilently(params: AcquireTokenSilentlyParams, callback: (Result<Boolean>) -> Unit)
-  fun acquireTokenSilentlyWithAccount(aadId: String, scopes: List<String?>, callback: (Result<Boolean>) -> Unit)
   fun signOut(aadId: String?, callback: (Result<Boolean>) -> Unit)
 
   companion object {
@@ -380,7 +379,7 @@ interface IntuneApi {
     @Suppress("UNCHECKED_CAST")
     fun setUp(binaryMessenger: BinaryMessenger, api: IntuneApi?) {
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.intune_android.IntuneApi.registerAuthentication", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.example.IntuneApi.registerAuthentication", codec)
         if (api != null) {
           channel.setMessageHandler { _, reply ->
             api.registerAuthentication() { result: Result<Boolean> ->
@@ -398,7 +397,7 @@ interface IntuneApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.intune_android.IntuneApi.registerAccountForMAM", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.example.IntuneApi.registerAccountForMAM", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -421,7 +420,7 @@ interface IntuneApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.intune_android.IntuneApi.unregisterAccountFromMAM", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.example.IntuneApi.unregisterAccountFromMAM", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -442,7 +441,7 @@ interface IntuneApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.intune_android.IntuneApi.getRegisteredAccountStatus", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.example.IntuneApi.getRegisteredAccountStatus", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -463,7 +462,7 @@ interface IntuneApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.intune_android.IntuneApi.createMicrosoftPublicClientApplication", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.example.IntuneApi.createMicrosoftPublicClientApplication", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -485,7 +484,7 @@ interface IntuneApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.intune_android.IntuneApi.getAccounts", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.example.IntuneApi.getAccounts", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -505,7 +504,7 @@ interface IntuneApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.intune_android.IntuneApi.acquireToken", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.example.IntuneApi.acquireToken", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -525,7 +524,7 @@ interface IntuneApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.intune_android.IntuneApi.acquireTokenSilently", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.example.IntuneApi.acquireTokenSilently", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -545,28 +544,7 @@ interface IntuneApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.intune_android.IntuneApi.acquireTokenSilentlyWithAccount", codec)
-        if (api != null) {
-          channel.setMessageHandler { message, reply ->
-            val args = message as List<Any?>
-            val aadIdArg = args[0] as String
-            val scopesArg = args[1] as List<String?>
-            api.acquireTokenSilentlyWithAccount(aadIdArg, scopesArg) { result: Result<Boolean> ->
-              val error = result.exceptionOrNull()
-              if (error != null) {
-                reply.reply(wrapError(error))
-              } else {
-                val data = result.getOrNull()
-                reply.reply(wrapResult(data))
-              }
-            }
-          }
-        } else {
-          channel.setMessageHandler(null)
-        }
-      }
-      run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.intune_android.IntuneApi.signOut", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.example.IntuneApi.signOut", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -657,37 +635,37 @@ class IntuneFlutterApi(private val binaryMessenger: BinaryMessenger) {
     }
   }
   fun onEnrollmentNotification(enrollmentResultArg: MAMEnrollmentStatusResult, callback: () -> Unit) {
-    val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.intune_android.IntuneFlutterApi.onEnrollmentNotification", codec)
+    val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.example.IntuneFlutterApi.onEnrollmentNotification", codec)
     channel.send(listOf(enrollmentResultArg)) {
       callback()
     }
   }
   fun onUnexpectedEnrollmentNotification(callback: () -> Unit) {
-    val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.intune_android.IntuneFlutterApi.onUnexpectedEnrollmentNotification", codec)
+    val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.example.IntuneFlutterApi.onUnexpectedEnrollmentNotification", codec)
     channel.send(null) {
       callback()
     }
   }
   fun onMsalException(exceptionArg: MSALApiException, callback: () -> Unit) {
-    val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.intune_android.IntuneFlutterApi.onMsalException", codec)
+    val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.example.IntuneFlutterApi.onMsalException", codec)
     channel.send(listOf(exceptionArg)) {
       callback()
     }
   }
   fun onErrorType(responseArg: MSALErrorResponse, callback: () -> Unit) {
-    val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.intune_android.IntuneFlutterApi.onErrorType", codec)
+    val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.example.IntuneFlutterApi.onErrorType", codec)
     channel.send(listOf(responseArg)) {
       callback()
     }
   }
   fun onUserAuthenticationDetails(detailsArg: MSALUserAuthenticationDetails, callback: () -> Unit) {
-    val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.intune_android.IntuneFlutterApi.onUserAuthenticationDetails", codec)
+    val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.example.IntuneFlutterApi.onUserAuthenticationDetails", codec)
     channel.send(listOf(detailsArg)) {
       callback()
     }
   }
   fun onSignOut(callback: () -> Unit) {
-    val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.intune_android.IntuneFlutterApi.onSignOut", codec)
+    val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.example.IntuneFlutterApi.onSignOut", codec)
     channel.send(null) {
       callback()
     }
