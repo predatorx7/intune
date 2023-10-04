@@ -2,3 +2,11 @@ include: package:flutter_lints/flutter.yaml
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+analyzer:
+  # TODO(Lyokone): not working if added on the root analysis file
+  exclude:
+    - lib/src/pigeon/messages.pigeon.dart
+
+linter:
+  rules:
+    constant_identifier_names: false

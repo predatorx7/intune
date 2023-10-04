@@ -1,6 +1,13 @@
+// Copyright 2023, Mushaheed Syed. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-import 'implementations/method_channel_intune.dart';
+import 'implementations/intune_platform.dart';
+import 'intune_callback.dart';
+import 'pigeon/messages.pigeon.dart';
+
+export 'intune_callback.dart';
 
 /// The interface that implementations of intune must implement.
 ///
@@ -9,48 +16,59 @@ import 'implementations/method_channel_intune.dart';
 /// changes. Extending this class (using `extends`) ensures that the subclass
 /// will get the default implementation, while platform implementations that
 /// `implements` this interface will be broken by newly added
-/// [IntunePlatform] methods.
-abstract class IntunePlatform extends PlatformInterface {
+/// [IntunePlatformInterface] methods.
+abstract class IntunePlatformInterface extends PlatformInterface {
   /// Constructs a IntunePlatform.
-  IntunePlatform() : super(token: _token);
+  IntunePlatformInterface() : super(token: _token);
 
   static final Object _token = Object();
 
-  static IntunePlatform _instance = MethodChannelIntune();
+  static IntunePlatformInterface _instance = IntunePlatform();
 
-  /// The default instance of [IntunePlatform] to use.
+  /// The default instance of [IntunePlatformInterface] to use.
   ///
-  /// Defaults to [MethodChannelIntune].
-  static IntunePlatform get instance => _instance;
+  /// Defaults to [IntunePlatform].
+  static IntunePlatformInterface get instance => _instance;
 
   /// Platform-specific plugins should set this with their own
-  /// platform-specific class that extends [IntunePlatform] when they
+  /// platform-specific class that extends [IntunePlatformInterface] when they
   /// register themselves.
-  static set instance(IntunePlatform instance) {
+  static set instance(IntunePlatformInterface instance) {
     PlatformInterface.verify(instance, _token);
     _instance = instance;
   }
 
-  Future<bool> registerAuthentication() {
-    throw UnimplementedError(
-        'registerAuthentication() has not been implemented.');
-  }
+  void setReceiver(IntuneCallback receiver);
+
+  void removeReceiver();
+
+  Future<bool> registerAuthentication();
 
   Future<bool> registerAccountForMAM(
     String upn,
     String aadId,
     String tenantId,
     String authorityURL,
-  ) {
-    throw UnimplementedError(
-        'registerAccountForMAM() has not been implemented.');
-  }
+  );
 
-  Future<bool> unregisterAccountFromMAM(
+  Future<bool> unregisterAccountFromMAM(String upn, String aadId);
+
+  Future<MAMEnrollmentStatusResult> getRegisteredAccountStatus(
     String upn,
     String aadId,
-  ) {
-    throw UnimplementedError(
-        'unregisterAccountFromMAM() has not been implemented.');
-  }
+  );
+
+  Future<bool> createMicrosoftPublicClientApplication(
+    Map<String?, Object?> publicClientApplicationConfiguration,
+    bool forceCreation,
+    bool enableLogs,
+  );
+
+  Future<List<MSALUserAccount?>> getAccounts(String? aadId);
+
+  Future<bool> acquireToken(AcquireTokenParams params);
+
+  Future<bool> acquireTokenSilently(AcquireTokenSilentlyParams params);
+
+  Future<bool> signOut(String? aadId);
 }

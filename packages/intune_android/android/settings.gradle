@@ -1,2 +1,0 @@
-rootProject.name = 'intune_android'
-include ":${rootDir.path}/app/MAMSDK"

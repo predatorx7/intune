@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/packages/intune/melos_intune.iml" filepath="$PROJECT_DIR$/packages/intune/melos_intune.iml" />
+      <module fileurl="file://$PROJECT_DIR$/packages/intune_android/melos_intune_android.iml" filepath="$PROJECT_DIR$/packages/intune_android/melos_intune_android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/packages/intune_ios/melos_intune_ios.iml" filepath="$PROJECT_DIR$/packages/intune_ios/melos_intune_ios.iml" />
+      <module fileurl="file://$PROJECT_DIR$/packages/intune_platform_interface/melos_intune_platform_interface.iml" filepath="$PROJECT_DIR$/packages/intune_platform_interface/melos_intune_platform_interface.iml" />
+      <module fileurl="file://$PROJECT_DIR$/melos_intune.iml" filepath="$PROJECT_DIR$/melos_intune.iml" />
+    </modules>
+  </component>
+</project>

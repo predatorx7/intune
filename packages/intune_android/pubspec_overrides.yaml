@@ -1,3 +1,0 @@
-dependency_overrides:
-  intune_platform_interface:
-    path: ../intune_platform_interface

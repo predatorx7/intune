@@ -1,18 +1,17 @@
 name: intune
 description: A new Flutter plugin project.
 version: 0.1.0
-homepage:
+homepage: https://github.com/predatorx7/intune.git
 
 environment:
-  sdk: ">=2.18.0 <3.0.0"
+  sdk: ">=2.18.0 <4.0.0"
   flutter: ">=3.3.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  intune_android: ^0.1.0
-  intune_ios: ^0.1.0
   intune_platform_interface: ^0.1.0
+  meta: ^1.0.0
 
 dev_dependencies:
   flutter_test:
@@ -21,8 +20,11 @@ dev_dependencies:
 
 flutter:
   plugin:
+    # implements: intune
     platforms:
       android:
-        default_package: intune_android
+        package: com.magnificsoftware.flutter_plugins.intune_android
+        pluginClass: IntuneAndroidPlugin
       ios:
-        default_package: intune_ios
+        pluginClass: IntuneIosPlugin
+        dartPluginClass: IntuneIos

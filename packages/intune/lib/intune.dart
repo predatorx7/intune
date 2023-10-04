@@ -1,27 +1,91 @@
+// Copyright 2023, Mushaheed Syed. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
-import 'package:intune_android/intune_android.dart';
 import 'package:intune_platform_interface/intune_platform_interface.dart';
-export 'package:intune_android/intune_android.dart';
-export 'package:intune_platform_interface/intune_platform_interface.dart'
-    show IntunePlatform;
 
-IntunePlatform get _platform => IntunePlatform.instance;
+import 'src/stream_callback.dart';
+import 'src/exceptions.dart';
 
-typedef PublicClientApplicationConfiguration = Map<String?, Object?>;
+export 'package:intune_platform_interface/intune_platform_interface.dart';
+export 'src/exceptions.dart';
 
-class AndroidPublicClientApplication {
-  AndroidPublicClientApplication();
+IntunePlatformInterface get _instance => IntunePlatformInterface.instance;
 
-  IntuneAndroid get _intune => _platform as IntuneAndroid;
+class Intune {
+  final MicrosoftAuthenticationLibrary msal;
+  final MicrosoftAppManagement mam;
+  final StreamIntuneCallback _streamIntuneCallback;
 
-  Future<bool> updateConfiguration({
-    required PublicClientApplicationConfiguration
-        publicClientApplicationConfiguration,
+  Intune({
+    this.msal = const MicrosoftAuthenticationLibrary(),
+    this.mam = const MicrosoftAppManagement(),
+    StreamIntuneCallback? streamCallback,
+  }) : _streamIntuneCallback = streamCallback ?? StreamIntuneCallback();
+
+  Stream<MAMEnrollmentStatus?> get enrollmentStatusStream =>
+      _streamIntuneCallback.enrollmentStatusStream;
+  Stream<IntuneAuthenticationException?> get pluginExceptionsStream =>
+      _streamIntuneCallback.pluginExceptionsStream;
+  Stream<MSALUserAuthenticationDetails?> get authenticationStream =>
+      _streamIntuneCallback.authenticationStream;
+
+  Future<void> setup({
+    required PublicClientApplicationConfiguration configuration,
+    bool forceCreation = false,
+    bool enableLogs = kDebugMode,
+  }) async {
+    try {
+      _instance.setReceiver(_streamIntuneCallback);
+    } catch (e) {
+      throw IntuneSetupException(
+        'Failed to setup intune callback receiver',
+        e,
+      );
+    }
+    try {
+      await mam.setup();
+    } catch (e) {
+      throw IntuneSetupException(
+        'Failed to setup intune mam',
+        e,
+      );
+    }
+    try {
+      await msal.setup(
+        configuration: configuration,
+        forceCreation: forceCreation,
+        enableLogs: enableLogs,
+      );
+    } catch (e) {
+      throw IntuneSetupException(
+        'Failed to setup intune msal',
+        e,
+      );
+    }
+  }
+
+  void dispose() {
+    _instance.removeReceiver();
+    _streamIntuneCallback.dispose();
+  }
+}
+
+typedef PublicClientApplicationConfiguration = Map<String, Object?>;
+
+class MicrosoftAuthenticationLibrary {
+  const MicrosoftAuthenticationLibrary();
+
+  /// Configures the public client application from msal
+  Future<bool> setup({
+    required PublicClientApplicationConfiguration configuration,
     bool forceCreation = false,
     bool enableLogs = kDebugMode,
   }) {
-    return _intune.createMicrosoftPublicClientApplication(
-      publicClientApplicationConfiguration,
+    return _instance.createMicrosoftPublicClientApplication(
+      configuration,
       forceCreation,
       enableLogs,
     );
@@ -30,37 +94,29 @@ class AndroidPublicClientApplication {
   Future<Iterable<MSALUserAccount>> getAccounts(
     String? aadId,
   ) {
-    return _intune.getAccounts(aadId);
+    return _instance
+        .getAccounts(aadId)
+        .then((e) => e.whereType<MSALUserAccount>());
   }
 
-  Future<bool> signIn(AcquireTokenParams params) {
-    return _intune.signIn(params);
+  Future<bool> acquireToken(AcquireTokenParams params) {
+    return _instance.acquireToken(params);
   }
 
-  Future<bool> signInSilently(AcquireTokenSilentlyParams params) {
-    return _intune.signInSilently(params);
+  Future<bool> acquireTokenSilently(AcquireTokenSilentlyParams params) {
+    return _instance.acquireTokenSilently(params);
   }
 
-  Future<bool> signOut(
-    String? aadId,
-  ) {
-    return _intune.signOut(aadId);
+  Future<bool> signOut(String? aadId) {
+    return _instance.signOut(aadId);
   }
 }
 
-class AndroidEnrollmentManager {
-  IntuneAndroid get _intune => _platform as IntuneAndroid;
+class MicrosoftAppManagement {
+  const MicrosoftAppManagement();
 
-  Future<bool> registerAuthentication() {
-    return _intune.registerAuthentication();
-  }
-
-  void setAndroidReceiver(IntuneAndroidCallback receiver) {
-    return _intune.setAndroidReceiver(receiver);
-  }
-
-  void removeAndroidReceiver() {
-    return _intune.removeAndroidReceiver();
+  Future<bool> setup() {
+    return _instance.registerAuthentication();
   }
 
   Future<bool> registerAccountForMAM(
@@ -69,13 +125,20 @@ class AndroidEnrollmentManager {
     String tenantId,
     String authorityURL,
   ) {
-    return _intune.registerAccountForMAM(upn, aadId, tenantId, authorityURL);
+    return _instance.registerAccountForMAM(upn, aadId, tenantId, authorityURL);
   }
 
   Future<bool> unregisterAccountFromMAM(
     String upn,
     String aadId,
   ) {
-    return _intune.unregisterAccountFromMAM(upn, aadId);
+    return _instance.unregisterAccountFromMAM(upn, aadId);
+  }
+
+  Future<MAMEnrollmentStatusResult> getRegisteredAccountStatus(
+    String upn,
+    String aadId,
+  ) {
+    return _instance.getRegisteredAccountStatus(upn, aadId);
   }
 }
