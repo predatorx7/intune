@@ -1,4 +1,4 @@
-group 'com.hdfc.intune_android'
+group 'com.hdfc.flutter_plugins.intune_android'
 version '1.0-SNAPSHOT'
 
 buildscript {
@@ -7,6 +7,10 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        maven {
+            url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1'
+            name 'Duo-SDK-Feed'
+        }
     }
 
     dependencies {
@@ -31,13 +35,27 @@ apply plugin: 'kotlin-android'
 apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
-    namespace "com.magnificsoftware.flutter_plugins.intune_android"
+    if (project.android.hasProperty("namespace")) {
+        namespace "com.hdfc.flutter_plugins.intune_android"
+    }
 
     compileSdkVersion project.hasProperty('compileSdkVersion') ? rootProject.ext.compileSdkVersion : 30
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
         test.java.srcDirs += 'src/test/kotlin'
+    }
+
+    compileOptions {
+        // Flag to enable support for the new language APIs
+        coreLibraryDesugaringEnabled true
+
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
     }
 
     defaultConfig {
@@ -57,18 +75,6 @@ android {
         abortOnError false
     }
 
-    compileOptions {
-        // Flag to enable support for the new language APIs
-        coreLibraryDesugaringEnabled true
-
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    kotlinOptions {
-        jvmTarget = '1.8'
-    }
-
     testOptions {
         unitTests.all {
             useJUnitPlatform()
@@ -82,13 +88,10 @@ android {
     }
 
     dependencies {
-        implementation fileTree(dir: 'libs', include: ['*.jar'])
-        implementation project(':capacitor-android')
-        implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
-        testImplementation "junit:junit:$junitVersion"
-        androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
-        androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+        testImplementation 'org.jetbrains.kotlin:kotlin-test'
+        testImplementation 'org.mockito:mockito-core:5.0.0'
 
+        implementation fileTree(dir: 'libs', include: ['*.jar'])
         coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.2'
 
         // implementation files("${rootDir.path}/app/MAMSDK/Microsoft.Intune.MAM.SDK.aar")

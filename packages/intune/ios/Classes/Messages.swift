@@ -349,10 +349,10 @@ class IntuneApiCodec: FlutterStandardMessageCodec {
 protocol IntuneApi {
     func registerAuthentication(completion: @escaping (Result<Bool, Error>) -> Void)
     func registerAccountForMAM(upn: String, aadId: String, tenantId: String, authorityURL: String, completion: @escaping (Result<Bool, Error>) -> Void)
-    func unregisterAccountFromMAM(upn: String, aadId: String, completion: @escaping (Result<Bool, Error>) -> Void)
-    func getRegisteredAccountStatus(upn: String, aadId: String, completion: @escaping (Result<MAMEnrollmentStatusResult, Error>) -> Void)
+    func unregisterAccountFromMAM(upn: String, completion: @escaping (Result<Bool, Error>) -> Void)
+    func getRegisteredAccountStatus(upn: String, completion: @escaping (Result<MAMEnrollmentStatusResult, Error>) -> Void)
     func createMicrosoftPublicClientApplication(publicClientApplicationConfiguration: [String: Any?], forceCreation: Bool, enableLogs: Bool, completion: @escaping (Result<Bool, Error>) -> Void)
-    func getAccounts(aadId: String?, completion: @escaping (Result<[MSALUserAccount], Error>) -> Void)
+    func getAccounts(completion: @escaping (Result<[MSALUserAccount], Error>) -> Void)
     func acquireToken(params: AcquireTokenParams, completion: @escaping (Result<Bool, Error>) -> Void)
     func acquireTokenSilently(params: AcquireTokenSilentlyParams, completion: @escaping (Result<Bool, Error>) -> Void)
     func signOut(aadId: String?, completion: @escaping (Result<Bool, Error>) -> Void)
@@ -404,8 +404,7 @@ enum IntuneApiSetup {
             unregisterAccountFromMAMChannel.setMessageHandler { message, reply in
                 let args = message as! [Any]
                 let upnArg = args[0] as! String
-                let aadIdArg = args[1] as! String
-                api.unregisterAccountFromMAM(upn: upnArg, aadId: aadIdArg) { result in
+                api.unregisterAccountFromMAM(upn: upnArg) { result in
                     switch result {
                     case let .success(res):
                         reply(wrapResult(res))
@@ -422,8 +421,7 @@ enum IntuneApiSetup {
             getRegisteredAccountStatusChannel.setMessageHandler { message, reply in
                 let args = message as! [Any]
                 let upnArg = args[0] as! String
-                let aadIdArg = args[1] as! String
-                api.getRegisteredAccountStatus(upn: upnArg, aadId: aadIdArg) { result in
+                api.getRegisteredAccountStatus(upn: upnArg) { result in
                     switch result {
                     case let .success(res):
                         reply(wrapResult(res))
@@ -456,10 +454,8 @@ enum IntuneApiSetup {
         }
         let getAccountsChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.IntuneApi.getAccounts", binaryMessenger: binaryMessenger, codec: codec)
         if let api = api {
-            getAccountsChannel.setMessageHandler { message, reply in
-                let args = message as! [Any]
-                let aadIdArg: String? = nilOrValue(args[0])
-                api.getAccounts(aadId: aadIdArg) { result in
+            getAccountsChannel.setMessageHandler { _, reply in
+                api.getAccounts { result in
                     switch result {
                     case let .success(res):
                         reply(wrapResult(res))

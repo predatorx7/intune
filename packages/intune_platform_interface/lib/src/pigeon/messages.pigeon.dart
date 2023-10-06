@@ -398,13 +398,12 @@ class IntuneApi {
     }
   }
 
-  Future<bool> unregisterAccountFromMAM(
-      String arg_upn, String arg_aadId) async {
+  Future<bool> unregisterAccountFromMAM(String arg_upn) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.IntuneApi.unregisterAccountFromMAM', codec,
         binaryMessenger: _binaryMessenger);
     final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_upn, arg_aadId]) as List<Object?>?;
+        await channel.send(<Object?>[arg_upn]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -427,12 +426,12 @@ class IntuneApi {
   }
 
   Future<MAMEnrollmentStatusResult> getRegisteredAccountStatus(
-      String arg_upn, String arg_aadId) async {
+      String arg_upn) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.IntuneApi.getRegisteredAccountStatus', codec,
         binaryMessenger: _binaryMessenger);
     final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_upn, arg_aadId]) as List<Object?>?;
+        await channel.send(<Object?>[arg_upn]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -488,12 +487,11 @@ class IntuneApi {
     }
   }
 
-  Future<List<MSALUserAccount?>> getAccounts(String? arg_aadId) async {
+  Future<List<MSALUserAccount?>> getAccounts() async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.IntuneApi.getAccounts', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_aadId]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(null) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',

@@ -91,11 +91,9 @@ class MicrosoftAuthenticationLibrary {
     );
   }
 
-  Future<Iterable<MSALUserAccount>> getAccounts(
-    String? aadId,
-  ) {
+  Future<Iterable<MSALUserAccount>> getAccounts() {
     return _instance
-        .getAccounts(aadId)
+        .getAccounts()
         .then((e) => e.whereType<MSALUserAccount>());
   }
 
@@ -130,15 +128,13 @@ class MicrosoftAppManagement {
 
   Future<bool> unregisterAccountFromMAM(
     String upn,
-    String aadId,
   ) {
-    return _instance.unregisterAccountFromMAM(upn, aadId);
+    return _instance.unregisterAccountFromMAM(upn);
   }
 
   Future<MAMEnrollmentStatusResult> getRegisteredAccountStatus(
     String upn,
-    String aadId,
   ) {
-    return _instance.getRegisteredAccountStatus(upn, aadId);
+    return _instance.getRegisteredAccountStatus(upn);
   }
 }

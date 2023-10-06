@@ -51,11 +51,10 @@ abstract class IntunePlatformInterface extends PlatformInterface {
     String authorityURL,
   );
 
-  Future<bool> unregisterAccountFromMAM(String upn, String aadId);
+  Future<bool> unregisterAccountFromMAM(String upn);
 
   Future<MAMEnrollmentStatusResult> getRegisteredAccountStatus(
     String upn,
-    String aadId,
   );
 
   Future<bool> createMicrosoftPublicClientApplication(
@@ -64,7 +63,7 @@ abstract class IntunePlatformInterface extends PlatformInterface {
     bool enableLogs,
   );
 
-  Future<List<MSALUserAccount?>> getAccounts(String? aadId);
+  Future<List<MSALUserAccount?>> getAccounts();
 
   Future<bool> acquireToken(AcquireTokenParams params);
 

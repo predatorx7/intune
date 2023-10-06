@@ -41,17 +41,15 @@ class IntunePlatform extends IntunePlatformInterface {
   @override
   Future<bool> unregisterAccountFromMAM(
     String upn,
-    String aadId,
   ) {
-    return _api.unregisterAccountFromMAM(upn, aadId);
+    return _api.unregisterAccountFromMAM(upn);
   }
 
   @override
   Future<messages.MAMEnrollmentStatusResult> getRegisteredAccountStatus(
     String upn,
-    String aadId,
   ) {
-    return _api.getRegisteredAccountStatus(upn, aadId);
+    return _api.getRegisteredAccountStatus(upn);
   }
 
   @override
@@ -68,10 +66,8 @@ class IntunePlatform extends IntunePlatformInterface {
   }
 
   @override
-  Future<List<messages.MSALUserAccount?>> getAccounts(
-    String? aadId,
-  ) {
-    return _api.getAccounts(aadId);
+  Future<List<messages.MSALUserAccount?>> getAccounts() {
+    return _api.getAccounts();
   }
 
   @override

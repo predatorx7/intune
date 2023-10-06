@@ -23,7 +23,7 @@ flutter:
     # implements: intune
     platforms:
       android:
-        package: com.magnificsoftware.flutter_plugins.intune_android
+        package: com.hdfc.flutter_plugins.intune_android
         pluginClass: IntuneAndroidPlugin
       ios:
         pluginClass: IntuneIosPlugin

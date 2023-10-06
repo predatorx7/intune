@@ -5,7 +5,7 @@ import 'package:pigeon/pigeon.dart';
   dartOut: 'lib/src/pigeon/messages.pigeon.dart',
   dartTestOut: 'test/pigeon/messages_test.g.dart',
   kotlinOptions: KotlinOptions(
-    package: 'com.magnificsoftware.flutter_plugins.intune_android',
+    package: 'com.hdfc.flutter_plugins.intune_android',
   ),
   kotlinOut:
       '../intune/android/src/main/kotlin/com/hdfc/flutter_plugins/intune_android/Messages.kt',
@@ -27,12 +27,11 @@ abstract class IntuneApi {
   );
 
   @async
-  bool unregisterAccountFromMAM(String upn, String aadId);
+  bool unregisterAccountFromMAM(String upn);
 
   @async
   MAMEnrollmentStatusResult getRegisteredAccountStatus(
     String upn,
-    String aadId,
   );
 
   // MSAL APIs
@@ -44,7 +43,7 @@ abstract class IntuneApi {
   );
 
   @async
-  List<MSALUserAccount> getAccounts(String? aadId);
+  List<MSALUserAccount> getAccounts();
 
   @async
   bool acquireToken(AcquireTokenParams params);
