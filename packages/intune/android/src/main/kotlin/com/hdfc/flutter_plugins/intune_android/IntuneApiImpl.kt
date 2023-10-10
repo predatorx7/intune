@@ -330,13 +330,16 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
             Log.i(TAG, "signOut: public client application was not initialized")
             return callback(Result.success(false))
         }
-        val account = IntuneUtils(app, reply).getAccount(params.aadId)
-        if (account == null) {
-            Handler(Looper.getMainLooper()).post{ reply.onMsalException(MsalUiRequiredException(MsalUiRequiredException.NO_ACCOUNT_FOUND, "no account found for ${params.aadId}")) }
-            return callback(Result.success(false))
-        }
 
         Thread {
+            val account = IntuneUtils(app, reply).getAccount(params.aadId)
+            if (account == null) {
+                Handler(Looper.getMainLooper()).post{
+                    reply.onMsalException(MsalUiRequiredException(MsalUiRequiredException.NO_ACCOUNT_FOUND, "no account found for ${params.aadId}"))
+                    callback(Result.success(false))
+                }
+                return@Thread
+            }
             var paramsBuilder = AcquireTokenSilentParameters.Builder()
                     .withScopes(params.scopes)
                     .forAccount(account)
@@ -400,6 +403,7 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
                         }
 
                         override fun onError(exception: MsalException) {
+                            Log.e(TAG, "signOut: failed", exception)
                             Handler(context.mainLooper).post { callback(Result.success(false)) }
                             Handler(Looper.getMainLooper()).post{ reply.onMsalException(exception) }
                         }
