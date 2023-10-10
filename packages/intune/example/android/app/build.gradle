@@ -2,6 +2,7 @@ plugins {
     id "com.android.application"
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
+    id "com.microsoft.intune.mam"
 }
 
 def localProperties = new Properties()
@@ -22,10 +23,18 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('../secrets/key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace "com.hdfc.irmuat"
     compileSdkVersion flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
+
+    flutter.minSdkVersion = 21
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -51,11 +60,39 @@ android {
         versionName flutterVersionName
     }
 
+    signingConfigs {
+        project.logger.debug("grabbing release signing configs: " + System.getenv("ANDROID_KEYSTORE_PATH"))
+
+        if (System.getenv("ANDROID_KEYSTORE_PATH")) {
+            release {
+                storeFile file(System.getenv("ANDROID_KEYSTORE_PATH"))
+                keyAlias System.getenv("ANDROID_KEYSTORE_ALIAS")
+                keyPassword System.getenv("ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
+                storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+            }
+        } else {
+            release {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+    }
+
     buildTypes {
+        // release {
+        //     // TODO: Add your own signing config for the release build.
+        //     // Signing with the debug keys for now, so `flutter run --release` works.
+        //     signingConfig signingConfigs.debug
+        // }
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'),'proguard-rules.pro'
+        }
+        debug {
+            signingConfig signingConfigs.release
+            // signingConfig signingConfigs.debug
         }
     }
 }
@@ -64,4 +101,10 @@ flutter {
     source '../..'
 }
 
-dependencies {}
+dependencies {
+    implementation files("../ms-intune-app-sdk-android/Microsoft.Intune.MAM.SDK.aar")
+}
+
+intunemam {
+    verify = true
+}

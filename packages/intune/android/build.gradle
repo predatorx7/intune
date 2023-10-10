@@ -6,11 +6,8 @@ buildscript {
     ext.msal_version = project.hasProperty('msal_version') ? rootProject.ext.msal_version : '4.8.1'
     repositories {
         google()
+        jcenter()
         mavenCentral()
-        maven {
-            url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1'
-            name 'Duo-SDK-Feed'
-        }
     }
 
     dependencies {
@@ -22,6 +19,7 @@ buildscript {
 allprojects {
     repositories {
         google()
+        jcenter()
         mavenCentral()
         maven {
             url 'https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1'
@@ -94,8 +92,7 @@ android {
         implementation fileTree(dir: 'libs', include: ['*.jar'])
         coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.2'
 
-        // implementation files("${rootDir.path}/app/MAMSDK/Microsoft.Intune.MAM.SDK.aar")
-        compileOnly files("./ms-intune-app-sdk-android/Microsoft.Intune.MAM.SDK.aar")
+        compileOnly files("${rootDir.path}/ms-intune-app-sdk-android/Microsoft.Intune.MAM.SDK.aar")
         implementation "com.microsoft.identity.client:msal:$msal_version"
     }
 }

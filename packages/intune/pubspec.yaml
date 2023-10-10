@@ -27,4 +27,3 @@ flutter:
         pluginClass: IntuneAndroidPlugin
       ios:
         pluginClass: IntuneIosPlugin
-        dartPluginClass: IntuneIos

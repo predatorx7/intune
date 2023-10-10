@@ -12,7 +12,7 @@ class IntuneSetupException implements Exception {
   }
 }
 
-class IntuneAuthenticationException implements Exception {
+abstract class IntuneAuthenticationException implements Exception {
   final Object? internalException;
 
   const IntuneAuthenticationException([this.internalException]);

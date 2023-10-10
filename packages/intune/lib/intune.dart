@@ -46,22 +46,34 @@ class Intune {
       );
     }
     try {
-      await mam.setup();
+      if (!await msal.setup(
+        configuration: configuration,
+        forceCreation: forceCreation,
+        enableLogs: enableLogs,
+      )) {
+        throw const IntuneSetupException(
+          'Failed to setup intune msal',
+        );
+      }
+    } on IntuneSetupException {
+      rethrow;
     } catch (e) {
       throw IntuneSetupException(
-        'Failed to setup intune mam',
+        'Failed to setup intune msal',
         e,
       );
     }
     try {
-      await msal.setup(
-        configuration: configuration,
-        forceCreation: forceCreation,
-        enableLogs: enableLogs,
-      );
+      if (!await mam.setup()) {
+        throw const IntuneSetupException(
+          'Failed to setup intune mam',
+        );
+      }
+    } on IntuneSetupException {
+      rethrow;
     } catch (e) {
       throw IntuneSetupException(
-        'Failed to setup intune msal',
+        'Failed to setup intune mam',
         e,
       );
     }
@@ -92,9 +104,7 @@ class MicrosoftAuthenticationLibrary {
   }
 
   Future<Iterable<MSALUserAccount>> getAccounts() {
-    return _instance
-        .getAccounts()
-        .then((e) => e.whereType<MSALUserAccount>());
+    return _instance.getAccounts().then((e) => e.whereType<MSALUserAccount>());
   }
 
   Future<bool> acquireToken(AcquireTokenParams params) {
