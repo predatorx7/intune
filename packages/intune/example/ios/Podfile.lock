@@ -1,0 +1,38 @@
+PODS:
+  - Flutter (1.0.0)
+  - intune (0.1.0):
+    - Flutter
+    - MSAL (~> 1.2)
+  - MSAL (1.2.16):
+    - MSAL/app-lib (= 1.2.16)
+  - MSAL/app-lib (1.2.16)
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - intune (from `.symlinks/plugins/intune/ios`)
+  - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
+
+SPEC REPOS:
+  trunk:
+    - MSAL
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  intune:
+    :path: ".symlinks/plugins/intune/ios"
+  shared_preferences_foundation:
+    :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
+
+SPEC CHECKSUMS:
+  Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
+  intune: 54d8cff3182073ca840965ccfc16ed0e25c5a5cf
+  MSAL: 00050640af38cd86a3219e3a4e8d3be5cd50a2e9
+  shared_preferences_foundation: 5b919d13b803cadd15ed2dc053125c68730e5126
+
+PODFILE CHECKSUM: 1959d098c91d8a792531a723c4a9d7e9f6a01e38
+
+COCOAPODS: 1.13.0
