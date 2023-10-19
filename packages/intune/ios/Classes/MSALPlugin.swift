@@ -207,7 +207,7 @@ public class SwiftMsalFlutterPlugin: NSObject, FlutterPlugin {
         let viewController: UIViewController = (UIApplication.shared.delegate?.window??.rootViewController)!
         self.webViewParamaters = MSALWebviewParameters(authPresentationViewController: viewController)
         if #available(iOS 13.0, *) {
-
+ 
             self.webViewParamaters?.prefersEphemeralWebBrowserSession =  privateSession
         } else {
             // Fallback on earlier versions

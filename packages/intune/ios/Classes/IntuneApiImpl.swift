@@ -9,6 +9,7 @@ import UIKit
 public class IntuneApiImpl: NSObject, IntuneApi {
     func ping(hello: String, completion: @escaping (Result<String, Error>) -> Void) {
         completion(.success("pong \(hello)"))
+        
     }
 
     func registerAuthentication(completion: @escaping (Result<Bool, Error>) -> Void) {

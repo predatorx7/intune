@@ -9,6 +9,17 @@
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		199E1C73C28F5F8A65566D53 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0AA24C60A7CB7BACA5FBF91 /* Pods_Runner.framework */; };
+		24577A102ADE6C1F009B7020 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24577A0F2ADE6C1F009B7020 /* AudioToolbox.framework */; };
+		24577A122ADE6C44009B7020 /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24577A112ADE6C44009B7020 /* ImageIO.framework */; };
+		24577A142ADE6C4E009B7020 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24577A132ADE6C4E009B7020 /* CoreServices.framework */; };
+		24577A162ADE6C6B009B7020 /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 24577A152ADE6C62009B7020 /* libc++.tbd */; };
+		24577A182ADE6C87009B7020 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 24577A172ADE6C7E009B7020 /* libsqlite3.tbd */; };
+		24577A1A2ADE6C94009B7020 /* LocalAuthentication.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24577A192ADE6C94009B7020 /* LocalAuthentication.framework */; };
+		24577A1C2ADE6C9D009B7020 /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24577A1B2ADE6C9D009B7020 /* MessageUI.framework */; };
+		24577A1E2ADE6CA9009B7020 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24577A1D2ADE6CA9009B7020 /* QuartzCore.framework */; };
+		24577A202ADE6CB6009B7020 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24577A1F2ADE6CB6009B7020 /* Security.framework */; };
+		24577A222ADE6CC5009B7020 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24577A212ADE6CC5009B7020 /* SystemConfiguration.framework */; };
+		24577A242ADE6CCE009B7020 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24577A232ADE6CCE009B7020 /* WebKit.framework */; };
 		2FD7EB21AE43EDEF16F67536 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F79A039403B102CF7B377863 /* Pods_RunnerTests.framework */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
@@ -44,6 +55,18 @@
 /* Begin PBXFileReference section */
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
+		24577A0F2ADE6C1F009B7020 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		24577A112ADE6C44009B7020 /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
+		24577A132ADE6C4E009B7020 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		24577A152ADE6C62009B7020 /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
+		24577A172ADE6C7E009B7020 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		24577A192ADE6C94009B7020 /* LocalAuthentication.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = LocalAuthentication.framework; path = System/Library/Frameworks/LocalAuthentication.framework; sourceTree = SDKROOT; };
+		24577A1B2ADE6C9D009B7020 /* MessageUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MessageUI.framework; path = System/Library/Frameworks/MessageUI.framework; sourceTree = SDKROOT; };
+		24577A1D2ADE6CA9009B7020 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		24577A1F2ADE6CB6009B7020 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		24577A212ADE6CC5009B7020 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		24577A232ADE6CCE009B7020 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		24577A252ADE6D08009B7020 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		378A2790B30264AF13BADFCD /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
@@ -80,7 +103,18 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				24577A182ADE6C87009B7020 /* libsqlite3.tbd in Frameworks */,
 				199E1C73C28F5F8A65566D53 /* Pods_Runner.framework in Frameworks */,
+				24577A242ADE6CCE009B7020 /* WebKit.framework in Frameworks */,
+				24577A1C2ADE6C9D009B7020 /* MessageUI.framework in Frameworks */,
+				24577A1A2ADE6C94009B7020 /* LocalAuthentication.framework in Frameworks */,
+				24577A162ADE6C6B009B7020 /* libc++.tbd in Frameworks */,
+				24577A102ADE6C1F009B7020 /* AudioToolbox.framework in Frameworks */,
+				24577A222ADE6CC5009B7020 /* SystemConfiguration.framework in Frameworks */,
+				24577A202ADE6CB6009B7020 /* Security.framework in Frameworks */,
+				24577A122ADE6C44009B7020 /* ImageIO.framework in Frameworks */,
+				24577A142ADE6C4E009B7020 /* CoreServices.framework in Frameworks */,
+				24577A1E2ADE6CA9009B7020 /* QuartzCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -130,6 +164,7 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				24577A252ADE6D08009B7020 /* Runner.entitlements */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
@@ -145,6 +180,17 @@
 		97ECD36C0509D4B35CA0DEFB /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				24577A232ADE6CCE009B7020 /* WebKit.framework */,
+				24577A212ADE6CC5009B7020 /* SystemConfiguration.framework */,
+				24577A1F2ADE6CB6009B7020 /* Security.framework */,
+				24577A1D2ADE6CA9009B7020 /* QuartzCore.framework */,
+				24577A1B2ADE6C9D009B7020 /* MessageUI.framework */,
+				24577A192ADE6C94009B7020 /* LocalAuthentication.framework */,
+				24577A172ADE6C7E009B7020 /* libsqlite3.tbd */,
+				24577A152ADE6C62009B7020 /* libc++.tbd */,
+				24577A132ADE6C4E009B7020 /* CoreServices.framework */,
+				24577A112ADE6C44009B7020 /* ImageIO.framework */,
+				24577A0F2ADE6C1F009B7020 /* AudioToolbox.framework */,
 				B0AA24C60A7CB7BACA5FBF91 /* Pods_Runner.framework */,
 				F79A039403B102CF7B377863 /* Pods_RunnerTests.framework */,
 			);
@@ -161,7 +207,6 @@
 				B61CF1312CAFE8AEDAE88900 /* Pods-RunnerTests.release.xcconfig */,
 				F37E25D3FB307AAC9D7695E2 /* Pods-RunnerTests.profile.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -468,6 +513,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 8LZZUWLNYQ;
 				ENABLE_BITCODE = NO;
@@ -478,6 +524,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.hdfc.irmuat;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -647,6 +694,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 8LZZUWLNYQ;
 				ENABLE_BITCODE = NO;
@@ -657,6 +705,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.hdfc.irmuat;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -670,6 +719,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 8LZZUWLNYQ;
 				ENABLE_BITCODE = NO;
@@ -680,6 +730,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.hdfc.irmuat;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRIP_SWIFT_SYMBOLS = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
