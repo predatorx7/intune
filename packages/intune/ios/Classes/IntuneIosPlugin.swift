@@ -13,8 +13,9 @@ public class IntuneIosPlugin: NSObject, FlutterPlugin {
         let api = IntuneApiImpl()
         let messenger = registrar.messenger()
         IntuneApiSetup.setUp(binaryMessenger: messenger, api: api)
+        intuneReply.setIntuneFlutterApi(api: IntuneFlutterApi(binaryMessenger: messenger))
     }
-    
+
     private static func onPluginRegister() {
         MSALGlobalConfig.loggerConfig.logMaskingLevel = .settingsMaskAllPII
         MSALGlobalConfig.loggerConfig.logLevel = .verbose

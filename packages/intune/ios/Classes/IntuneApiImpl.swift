@@ -11,10 +11,10 @@ extension FlutterError: Error {}
 public class IntuneApiImpl: NSObject, IntuneApi {
     func getUnimplementedError() -> FlutterError {
         return FlutterError(code: "1", message: "unimplemented", details: "")
-      }
+    }
+
     func ping(hello: String, completion: @escaping (Result<String, Error>) -> Void) {
         completion(.success("pong \(hello)"))
-        
     }
 
     func registerAuthentication(completion: @escaping (Result<Bool, Error>) -> Void) {
