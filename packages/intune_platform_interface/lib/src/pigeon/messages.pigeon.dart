@@ -280,6 +280,32 @@ class MSALUserAuthenticationDetails {
   }
 }
 
+class SignoutIOSParameters {
+  SignoutIOSParameters({
+    required this.signoutFromBrowser,
+    required this.prefersEphemeralWebBrowserSession,
+  });
+
+  bool signoutFromBrowser;
+
+  bool prefersEphemeralWebBrowserSession;
+
+  Object encode() {
+    return <Object?>[
+      signoutFromBrowser,
+      prefersEphemeralWebBrowserSession,
+    ];
+  }
+
+  static SignoutIOSParameters decode(Object result) {
+    result as List<Object?>;
+    return SignoutIOSParameters(
+      signoutFromBrowser: result[0]! as bool,
+      prefersEphemeralWebBrowserSession: result[1]! as bool,
+    );
+  }
+}
+
 class _IntuneApiCodec extends StandardMessageCodec {
   const _IntuneApiCodec();
   @override
@@ -305,6 +331,9 @@ class _IntuneApiCodec extends StandardMessageCodec {
     } else if (value is MSALUserAuthenticationDetails) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
+    } else if (value is SignoutIOSParameters) {
+      buffer.putUint8(135);
+      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -327,6 +356,8 @@ class _IntuneApiCodec extends StandardMessageCodec {
         return MSALUserAccount.decode(readValue(buffer)!);
       case 134:
         return MSALUserAuthenticationDetails.decode(readValue(buffer)!);
+      case 135:
+        return SignoutIOSParameters.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -568,12 +599,13 @@ class IntuneApi {
     }
   }
 
-  Future<bool> signOut(String? arg_aadId) async {
+  Future<bool> signOut(
+      String? arg_aadId, SignoutIOSParameters arg_iosParameters) async {
     final BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
         'dev.flutter.pigeon.IntuneApi.signOut', codec,
         binaryMessenger: _binaryMessenger);
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_aadId]) as List<Object?>?;
+    final List<Object?>? replyList = await channel
+        .send(<Object?>[arg_aadId, arg_iosParameters]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',

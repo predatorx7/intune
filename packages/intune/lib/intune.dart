@@ -115,8 +115,11 @@ class MicrosoftAuthenticationLibrary {
     return _instance.acquireTokenSilently(params);
   }
 
-  Future<bool> signOut(String? aadId) {
-    return _instance.signOut(aadId);
+  Future<bool> signOut(
+    String? aadId, {
+    required SignoutIOSParameters iosParameters,
+  }) {
+    return _instance.signOut(aadId, iosParameters);
   }
 }
 

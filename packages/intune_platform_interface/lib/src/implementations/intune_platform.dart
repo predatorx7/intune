@@ -84,7 +84,8 @@ class IntunePlatform extends IntunePlatformInterface {
   @override
   Future<bool> signOut(
     String? aadId,
+    messages.SignoutIOSParameters iosParameters,
   ) {
-    return _api.signOut(aadId);
+    return _api.signOut(aadId, iosParameters);
   }
 }

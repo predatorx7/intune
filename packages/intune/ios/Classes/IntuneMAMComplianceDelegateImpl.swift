@@ -8,7 +8,6 @@
 import Foundation
 import IntuneMAMSwift
 
-@objc(IntuneMAM)
 public class IntuneMAMComplianceDelegateImpl: NSObject, IntuneMAMComplianceDelegate {
     public func identity(
         _ identity: String,
@@ -16,7 +15,6 @@ public class IntuneMAMComplianceDelegateImpl: NSObject, IntuneMAMComplianceDeleg
         withErrorMessage errMsg: String,
         andErrorTitle errTitle: String
     ) {
-        intuneReply.updateCompliance(status: status)
         switch status {
         case .compliant:
             // Handle successful compliance
@@ -27,10 +25,11 @@ public class IntuneMAMComplianceDelegateImpl: NSObject, IntuneMAMComplianceDeleg
                 alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
                     exit(0)
                 }))
-                self.bridge?.viewController?.present(alert, animated: true, completion: nil)
+                // Send error to flutter to show a dialog
             }
         case .interactionRequired:
-            IntuneMAMComplianceManager.instance().remediateCompliance(forIdentity: identity, silent: false)
+            IntuneMAMComplianceManager.instance()
+                .remediateCompliance(forIdentity: identity, silent: false)
         default:
             print("Unknown compliance status value")
         }

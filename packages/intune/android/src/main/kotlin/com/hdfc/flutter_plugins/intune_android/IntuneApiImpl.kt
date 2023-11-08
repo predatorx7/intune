@@ -365,11 +365,11 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
         }.start()
     }
 
-    override fun signOut(aadId: String?, callback: (Result<Boolean>) -> Unit) {
+    override fun signOut(aadId: String?, iosParameters: SignoutIOSParameters, callback: (Result<Boolean>) -> Unit) {
         Thread {
             when (val app = publicClientApplication) {
                 null -> {
-                    Log.i(TAG, "signOut: public client application was not initialized")
+                    Log.w(TAG, "signOut: public client application was not initialized")
                     callback(Result.success(false))
                 }
 
@@ -396,6 +396,7 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
                     } else {
                         app.getAccount(aadId)
                     }
+                    // TODO: Null account was not handled
                     app.removeAccount(account, object : IMultipleAccountPublicClientApplication.RemoveAccountCallback {
                         override fun onRemoved() {
                             Handler(context.mainLooper).post { callback(Result.success(true)) }

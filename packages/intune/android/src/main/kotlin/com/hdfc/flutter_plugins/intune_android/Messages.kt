@@ -284,6 +284,28 @@ data class MSALUserAuthenticationDetails (
   }
 }
 
+/** Generated class from Pigeon that represents data sent in messages. */
+data class SignoutIOSParameters (
+  val signoutFromBrowser: Boolean,
+  val prefersEphemeralWebBrowserSession: Boolean
+
+) {
+  companion object {
+    @Suppress("UNCHECKED_CAST")
+    fun fromList(list: List<Any?>): SignoutIOSParameters {
+      val signoutFromBrowser = list[0] as Boolean
+      val prefersEphemeralWebBrowserSession = list[1] as Boolean
+      return SignoutIOSParameters(signoutFromBrowser, prefersEphemeralWebBrowserSession)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf<Any?>(
+      signoutFromBrowser,
+      prefersEphemeralWebBrowserSession,
+    )
+  }
+}
+
 @Suppress("UNCHECKED_CAST")
 private object IntuneApiCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
@@ -323,6 +345,11 @@ private object IntuneApiCodec : StandardMessageCodec() {
           MSALUserAuthenticationDetails.fromList(it)
         }
       }
+      135.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          SignoutIOSParameters.fromList(it)
+        }
+      }
       else -> super.readValueOfType(type, buffer)
     }
   }
@@ -356,6 +383,10 @@ private object IntuneApiCodec : StandardMessageCodec() {
         stream.write(134)
         writeValue(stream, value.toList())
       }
+      is SignoutIOSParameters -> {
+        stream.write(135)
+        writeValue(stream, value.toList())
+      }
       else -> super.writeValue(stream, value)
     }
   }
@@ -371,7 +402,7 @@ interface IntuneApi {
   fun getAccounts(callback: (Result<List<MSALUserAccount>>) -> Unit)
   fun acquireToken(params: AcquireTokenParams, callback: (Result<Boolean>) -> Unit)
   fun acquireTokenSilently(params: AcquireTokenSilentlyParams, callback: (Result<Boolean>) -> Unit)
-  fun signOut(aadId: String?, callback: (Result<Boolean>) -> Unit)
+  fun signOut(aadId: String?, iosParameters: SignoutIOSParameters, callback: (Result<Boolean>) -> Unit)
 
   companion object {
     /** The codec used by IntuneApi. */
@@ -548,7 +579,8 @@ interface IntuneApi {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val aadIdArg = args[0] as String?
-            api.signOut(aadIdArg) { result: Result<Boolean> ->
+            val iosParametersArg = args[1] as SignoutIOSParameters
+            api.signOut(aadIdArg, iosParametersArg) { result: Result<Boolean> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))

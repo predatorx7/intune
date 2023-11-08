@@ -1,7 +1,6 @@
 import IntuneMAMSwift
 
 class EnrollmentDelegateClass: NSObject, IntuneMAMEnrollmentDelegate {
-
     var presentingViewController: UIViewController?
     var didSucceedCallback: ((Bool, String) -> Void)?
 
@@ -14,14 +13,14 @@ class EnrollmentDelegateClass: NSObject, IntuneMAMEnrollmentDelegate {
         if status.didSucceed {
             // If enrollment was successful, change from the current view (which should have been initialized with the class) to the desired page on the app (in this case ChatPage)
             print("EnrollmentDelegate - enrollmentRequest - did succeed")
-            if self.didSucceedCallback != nil {
-                self.didSucceedCallback!(true, "")
+            if didSucceedCallback != nil {
+                didSucceedCallback!(true, "")
             }
         } else {
             print("Enrollment result for identity \(status.identity) with status code \(status.statusCode)")
             print("Debug message: \(String(describing: status.errorString))")
-            if self.didSucceedCallback != nil {
-                self.didSucceedCallback!(false, String(describing: status.errorString))
+            if didSucceedCallback != nil {
+                didSucceedCallback!(false, String(describing: status.errorString))
             }
         }
     }
@@ -35,14 +34,14 @@ class EnrollmentDelegateClass: NSObject, IntuneMAMEnrollmentDelegate {
         if status.didSucceed {
             // If unenrollment was successful, change from the current view (which should have been initialized with the class) to the desired page on the app (in this case ChatPage)
             print("EnrollmentDelegate - unenrollmentRequest - did succeed")
-            if self.didSucceedCallback != nil {
-                self.didSucceedCallback!(true, "")
+            if didSucceedCallback != nil {
+                didSucceedCallback!(true, "")
             }
         } else {
             print("Unenrollment result for identity \(status.identity) with status code \(status.statusCode)")
             print("Debug message: \(String(describing: status.errorString))")
-            if self.didSucceedCallback != nil {
-                self.didSucceedCallback!(false, String(describing: status.errorString))
+            if didSucceedCallback != nil {
+                didSucceedCallback!(false, String(describing: status.errorString))
             }
         }
     }

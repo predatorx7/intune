@@ -8,31 +8,46 @@
 import Foundation
 import IntuneMAMSwift
 
+private func _doNothing() {
+    // do nothing
+}
+
 class IntuneReply {
-    private var intuneFlutterApi: IntuneFlutterApi!;
+    private var intuneFlutterApi: IntuneFlutterApi!
 
     public func setIntuneFlutterApi(api: IntuneFlutterApi) {
-        intuneFlutterApi = api;
+        intuneFlutterApi = api
     }
-    
+
     func updateCompliance(status: IntuneMAMComplianceStatus) {
         var enrollmentResult: MAMEnrollmentStatus
         switch status {
         case .compliant:
-            enrollmentResult = MAMEnrollmentStatus.eNROLLMENTSUCCEEDED;
-            break;
+            enrollmentResult = MAMEnrollmentStatus.eNROLLMENTSUCCEEDED
         case .notCompliant, .networkFailure, .serviceFailure, .userCancelled:
-            enrollmentResult = MAMEnrollmentStatus.eNROLLMENTFAILED;
-            break;
+            enrollmentResult = MAMEnrollmentStatus.eNROLLMENTFAILED
         default:
-            enrollmentResult = MAMEnrollmentStatus.uNEXPECTED;
+            enrollmentResult = MAMEnrollmentStatus.uNEXPECTED
         }
         intuneFlutterApi.onEnrollmentNotification(
             enrollmentResult: MAMEnrollmentStatusResult(result: enrollmentResult),
-            completion: <#T##() -> Void#>
+            completion: _doNothing
+        )
+    }
+
+    func onSignOut() {
+        intuneFlutterApi.onSignOut(completion: _doNothing)
+    }
+
+    func onMSALException(error: Error, stacktrace: [String]) {
+        intuneFlutterApi.onMsalException(
+            exception: MSALApiException(
+                errorCode: error.localizedDescription,
+                stackTraceAsString: stacktrace.joined(separator: "\n")
+            ),
+            completion: _doNothing
         )
     }
 }
 
-var intuneReply: IntuneReply = IntuneReply()
-
+var intuneReply: IntuneReply = .init()

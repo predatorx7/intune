@@ -4,19 +4,19 @@
 import Foundation
 
 import Flutter
-import UIKit
 import MSAL
+import UIKit
 
 public class IntuneIosPlugin: NSObject, FlutterPlugin {
     public static func register(with registrar: FlutterPluginRegistrar) {
-        onPluginRegister();
+        enableMSALLogging()
         let api = IntuneApiImpl()
         let messenger = registrar.messenger()
         IntuneApiSetup.setUp(binaryMessenger: messenger, api: api)
         intuneReply.setIntuneFlutterApi(api: IntuneFlutterApi(binaryMessenger: messenger))
     }
 
-    private static func onPluginRegister() {
+    private static func enableMSALLogging() {
         MSALGlobalConfig.loggerConfig.logMaskingLevel = .settingsMaskAllPII
         MSALGlobalConfig.loggerConfig.logLevel = .verbose
     }

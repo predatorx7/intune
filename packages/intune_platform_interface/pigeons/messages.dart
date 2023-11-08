@@ -52,7 +52,7 @@ abstract class IntuneApi {
   bool acquireTokenSilently(AcquireTokenSilentlyParams params);
 
   @async
-  bool signOut(String? aadId);
+  bool signOut(String? aadId, SignoutIOSParameters iosParameters);
 }
 
 @FlutterApi()
@@ -184,5 +184,15 @@ class MSALUserAuthenticationDetails {
     this.correlationId,
     required this.expiresOnISO8601,
     required this.scope,
+  });
+}
+
+class SignoutIOSParameters {
+  final bool signoutFromBrowser;
+  final bool prefersEphemeralWebBrowserSession;
+
+  const SignoutIOSParameters({
+    required this.signoutFromBrowser,
+    required this.prefersEphemeralWebBrowserSession,
   });
 }

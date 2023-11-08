@@ -69,5 +69,5 @@ abstract class IntunePlatformInterface extends PlatformInterface {
 
   Future<bool> acquireTokenSilently(AcquireTokenSilentlyParams params);
 
-  Future<bool> signOut(String? aadId);
+  Future<bool> signOut(String? aadId, SignoutIOSParameters iosParameters);
 }

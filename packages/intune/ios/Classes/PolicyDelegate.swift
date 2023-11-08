@@ -1,7 +1,7 @@
 import IntuneMAMSwift
 
 class PolicyDelegateClass: NSObject, IntuneMAMPolicyDelegate {
-    func wipeData(forAccount: String) -> Bool {
+    func wipeData(forAccount _: String) -> Bool {
         // variable to track if the data wipe was successful
         var wipeSuccess = true
         return wipeSuccess

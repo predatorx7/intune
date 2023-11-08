@@ -115,7 +115,13 @@ class _MyHomePageState extends State<MyHomePage> {
   void _onLogout() async {
     try {
       final id = pref.getString('auth-user-id');
-      final result = await intune.msal.signOut(id);
+      final result = await intune.msal.signOut(
+        id,
+        iosParameters: SignoutIOSParameters(
+          prefersEphemeralWebBrowserSession: false,
+          signoutFromBrowser: true,
+        ),
+      );
       print('logout: $result');
       final oldAuthDetails = authDetails;
       if (mounted) {

@@ -279,6 +279,29 @@ struct MSALUserAuthenticationDetails {
     }
 }
 
+/// Generated class from Pigeon that represents data sent in messages.
+struct SignoutIOSParameters {
+    var signoutFromBrowser: Bool
+    var prefersEphemeralWebBrowserSession: Bool
+
+    static func fromList(_ list: [Any]) -> SignoutIOSParameters? {
+        let signoutFromBrowser = list[0] as! Bool
+        let prefersEphemeralWebBrowserSession = list[1] as! Bool
+
+        return SignoutIOSParameters(
+            signoutFromBrowser: signoutFromBrowser,
+            prefersEphemeralWebBrowserSession: prefersEphemeralWebBrowserSession
+        )
+    }
+
+    func toList() -> [Any?] {
+        return [
+            signoutFromBrowser,
+            prefersEphemeralWebBrowserSession,
+        ]
+    }
+}
+
 private class IntuneApiCodecReader: FlutterStandardReader {
     override func readValue(ofType type: UInt8) -> Any? {
         switch type {
@@ -296,6 +319,8 @@ private class IntuneApiCodecReader: FlutterStandardReader {
             return MSALUserAccount.fromList(readValue() as! [Any])
         case 134:
             return MSALUserAuthenticationDetails.fromList(readValue() as! [Any])
+        case 135:
+            return SignoutIOSParameters.fromList(readValue() as! [Any])
         default:
             return super.readValue(ofType: type)
         }
@@ -324,6 +349,9 @@ private class IntuneApiCodecWriter: FlutterStandardWriter {
             super.writeValue(value.toList())
         } else if let value = value as? MSALUserAuthenticationDetails {
             super.writeByte(134)
+            super.writeValue(value.toList())
+        } else if let value = value as? SignoutIOSParameters {
+            super.writeByte(135)
             super.writeValue(value.toList())
         } else {
             super.writeValue(value)
@@ -355,7 +383,7 @@ protocol IntuneApi {
     func getAccounts(completion: @escaping (Result<[MSALUserAccount], Error>) -> Void)
     func acquireToken(params: AcquireTokenParams, completion: @escaping (Result<Bool, Error>) -> Void)
     func acquireTokenSilently(params: AcquireTokenSilentlyParams, completion: @escaping (Result<Bool, Error>) -> Void)
-    func signOut(aadId: String?, completion: @escaping (Result<Bool, Error>) -> Void)
+    func signOut(aadId: String?, iosParameters: SignoutIOSParameters, completion: @escaping (Result<Bool, Error>) -> Void)
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -506,7 +534,8 @@ enum IntuneApiSetup {
             signOutChannel.setMessageHandler { message, reply in
                 let args = message as! [Any]
                 let aadIdArg: String? = nilOrValue(args[0])
-                api.signOut(aadId: aadIdArg) { result in
+                let iosParametersArg = args[1] as! SignoutIOSParameters
+                api.signOut(aadId: aadIdArg, iosParameters: iosParametersArg) { result in
                     switch result {
                     case let .success(res):
                         reply(wrapResult(res))
