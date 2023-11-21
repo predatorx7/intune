@@ -80,6 +80,15 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
     });
+    intune.pluginExceptionsStream.listen((event) {
+      if (event == null) return;
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(event.toString()),
+        ),
+      );
+    });
     Future.microtask(() {
       _loginSilently();
     });

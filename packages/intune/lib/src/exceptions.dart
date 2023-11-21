@@ -26,6 +26,11 @@ class IntuneAuthenticationResponseException
     this.response, [
     super.internalException,
   ]);
+
+  @override
+  String toString() {
+    return 'Auth Error: ${response.errorType.name}';
+  }
 }
 
 class IntuneAuthenticationApiException extends IntuneAuthenticationException {
@@ -35,4 +40,10 @@ class IntuneAuthenticationApiException extends IntuneAuthenticationException {
     this.response, [
     super.internalException,
   ]);
+
+
+  @override
+  String toString() {
+    return 'Auth Exception: ${response.message} (${response.errorCode})';
+  }
 }
