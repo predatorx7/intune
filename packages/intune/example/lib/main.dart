@@ -158,8 +158,8 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: ListView(
+          shrinkWrap: true,
           children: <Widget>[
             if (!isAuthenticated)
               ElevatedButton(
@@ -169,7 +169,10 @@ class _MyHomePageState extends State<MyHomePage> {
             if (isAuthenticated) ...[
               ListTile(
                 onTap: copyToken,
-                title: Text(authDetails?.accessToken ?? 'No Token'),
+                title: Text(
+                  authDetails?.accessToken ?? 'No Token',
+                  overflow: TextOverflow.ellipsis,
+                ),
                 subtitle: const Text('Access Token'),
                 trailing: IconButton(
                   onPressed: copyToken,
