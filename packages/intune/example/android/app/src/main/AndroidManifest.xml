@@ -1,9 +1,9 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.hdfc.irmuat">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.hdfcbank.irmintunemdmuat">
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
   <queries>
     <package android:name="com.azure.authenticator" />
-    <package android:name="com.hdfc.irmuat" />
+    <package android:name="com.hdfcbank.irmintunemdmuat" />
     <package android:name="com.microsoft.windowsintune.companyportal" />
     <intent>
       <action android:name="android.intent.action.VIEW" />
@@ -52,7 +52,7 @@
             note that the leading "/" is required for android:path
         -->
         <data
-          android:host="com.hdfc.irmuat"
+          android:host="com.hdfcbank.irmintunemdmuat"
           android:path="//56jD0/utKRWxj0sQxgm5d43G48="
           android:scheme="msauth" />
       </intent-filter>

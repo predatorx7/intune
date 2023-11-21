@@ -4,12 +4,12 @@ final pcaConfig = {
       "type": "AAD",
       "audience": {
         "type": "AzureADMyOrg",
-        "tenant_id": "330ab017-b6ba-4bcb-9fdd-46380820364a"
+        "tenant_id": "e6be54ea-7062-4c17-8fe8-93619063be54"
       }
     }
   ],
-  "client_id": "b3f2cec0-3644-4e78-ad3b-3270d757d20f",
-  "redirect_uri": "msauth://com.hdfc.irmuat/%2F56jD0%2FutKRWxj0sQxgm5d43G48%3D",
+  "client_id": "0bf9a561-112a-4691-8475-14489183d75d",
+  "redirect_uri": "msauth://com.hdfcbank.irmintunemdmuat/%2F56jD0%2FutKRWxj0sQxgm5d43G48%3D",
   "authorization_user_agent": "DEFAULT",
   "//authorization_user_agent": "WEBVIEW",
   "minimum_required_broker_protocol_version": "3.0",

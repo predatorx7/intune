@@ -4,7 +4,7 @@
 <dict>
 	<key>keychain-access-groups</key>
 	<array>
-		<string>$(AppIdentifierPrefix)com.hdfc.irmuat</string>
+		<string>$(AppIdentifierPrefix)com.hdfcbank.irmintunemdmuat</string>
 		<string>$(AppIdentifierPrefix)com.microsoft.intune.mam</string>
 		<string>$(AppIdentifierPrefix)com.microsoft.adalcache</string>
 	</array>

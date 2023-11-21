@@ -1,4 +1,4 @@
-package com.hdfc.irmuat
+package com.hdfcbank.irmintunemdmuat
 
 import io.flutter.embedding.android.FlutterActivity
 

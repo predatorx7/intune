@@ -7,6 +7,8 @@ import 'package:intune/intune.dart';
 
 import 'intune_msal_config.dart';
 
+const useMAM = false;
+
 final intune = Intune();
 late SharedPreferences pref;
 late final Future<void> intuneInitializedFuture;
@@ -19,12 +21,11 @@ void main() async {
   intuneInitializedFuture = intune
       .setup(
     configuration: pcaConfig,
+    setupMAM: useMAM,
   )
-      .then(
-    (_) {
-      print('ainfo: Did complete intune setup');
-    },
-  ).catchError((e) {
+      .then((_) {
+    print('ainfo: Did complete intune setup');
+  }).catchError((e) {
     print('aerror: $e');
     if (e is IntuneSetupException) {
       print(e.internalException);
@@ -104,12 +105,14 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void copyToken() {
-    Clipboard.setData(
+  void copyToken() async {
+    final msg = ScaffoldMessenger.of(context);
+    await Clipboard.setData(
       ClipboardData(
         text: authDetails?.accessToken ?? 'no access token',
       ),
     );
+    msg.showSnackBar(const SnackBar(content: Text('Token has been copied')));
   }
 
   void _onLogout() async {
@@ -155,9 +158,15 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: const Text('Login with MSAL'),
               ),
             if (isAuthenticated) ...[
-              ElevatedButton(
-                onPressed: copyToken,
-                child: const Text('Copy Token'),
+              ListTile(
+                onTap: copyToken,
+                title: Text(authDetails?.accessToken ?? 'No Token'),
+                subtitle: const Text('Access Token'),
+                trailing: IconButton(
+                  onPressed: copyToken,
+                  icon: const Icon(Icons.copy_rounded),
+                  tooltip: 'Copy token',
+                ),
               ),
               const SizedBox(
                 height: 10,
@@ -175,6 +184,7 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 void onMSALUserAccount(MSALUserAccount account) async {
+  if (!useMAM) return;
   try {
     print('registering account for mam');
     final result = await intune.mam.registerAccountForMAM(
@@ -191,6 +201,7 @@ void onMSALUserAccount(MSALUserAccount account) async {
 }
 
 void onSignout(String upn) async {
+  if (!useMAM) return;
   try {
     print('unregistering account for mam');
     // This may close the app

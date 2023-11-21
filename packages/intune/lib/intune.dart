@@ -36,6 +36,7 @@ class Intune {
     required PublicClientApplicationConfiguration configuration,
     bool forceCreation = false,
     bool enableLogs = kDebugMode,
+    bool setupMAM = true,
   }) async {
     try {
       _instance.setReceiver(_streamIntuneCallback);
@@ -63,19 +64,21 @@ class Intune {
         e,
       );
     }
-    try {
-      if (!await mam.setup()) {
-        throw const IntuneSetupException(
+    if (setupMAM) {
+      try {
+        if (!await mam.setup()) {
+          throw const IntuneSetupException(
+            'Failed to setup intune mam',
+          );
+        }
+      } on IntuneSetupException {
+        rethrow;
+      } catch (e) {
+        throw IntuneSetupException(
           'Failed to setup intune mam',
+          e,
         );
       }
-    } on IntuneSetupException {
-      rethrow;
-    } catch (e) {
-      throw IntuneSetupException(
-        'Failed to setup intune mam',
-        e,
-      );
     }
   }
 
