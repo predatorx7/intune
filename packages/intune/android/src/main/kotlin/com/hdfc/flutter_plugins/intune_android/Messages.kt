@@ -255,7 +255,7 @@ data class MSALUserAuthenticationDetails (
   val accessToken: String,
   val account: MSALUserAccount,
   val authenticationScheme: String,
-  val correlationId: Long? = null,
+  val correlationId: String? = null,
   val expiresOnISO8601: String,
   val scope: List<String?>
 
@@ -266,7 +266,7 @@ data class MSALUserAuthenticationDetails (
       val accessToken = list[0] as String
       val account = MSALUserAccount.fromList(list[1] as List<Any?>)
       val authenticationScheme = list[2] as String
-      val correlationId = list[3].let { if (it is Int) it.toLong() else it as Long? }
+      val correlationId = list[3] as String?
       val expiresOnISO8601 = list[4] as String
       val scope = list[5] as List<String?>
       return MSALUserAuthenticationDetails(accessToken, account, authenticationScheme, correlationId, expiresOnISO8601, scope)
@@ -396,8 +396,8 @@ private object IntuneApiCodec : StandardMessageCodec() {
 interface IntuneApi {
   fun registerAuthentication(callback: (Result<Boolean>) -> Unit)
   fun registerAccountForMAM(upn: String, aadId: String, tenantId: String, authorityURL: String, callback: (Result<Boolean>) -> Unit)
-  fun unregisterAccountFromMAM(upn: String, callback: (Result<Boolean>) -> Unit)
-  fun getRegisteredAccountStatus(upn: String, callback: (Result<MAMEnrollmentStatusResult>) -> Unit)
+  fun unregisterAccountFromMAM(upn: String, aadId: String, callback: (Result<Boolean>) -> Unit)
+  fun getRegisteredAccountStatus(upn: String, aadId: String, callback: (Result<MAMEnrollmentStatusResult>) -> Unit)
   fun createMicrosoftPublicClientApplication(publicClientApplicationConfiguration: Map<String, Any?>, forceCreation: Boolean, enableLogs: Boolean, callback: (Result<Boolean>) -> Unit)
   fun getAccounts(callback: (Result<List<MSALUserAccount>>) -> Unit)
   fun acquireToken(params: AcquireTokenParams, callback: (Result<Boolean>) -> Unit)
@@ -459,7 +459,8 @@ interface IntuneApi {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val upnArg = args[0] as String
-            api.unregisterAccountFromMAM(upnArg) { result: Result<Boolean> ->
+            val aadIdArg = args[1] as String
+            api.unregisterAccountFromMAM(upnArg, aadIdArg) { result: Result<Boolean> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))
@@ -479,7 +480,8 @@ interface IntuneApi {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val upnArg = args[0] as String
-            api.getRegisteredAccountStatus(upnArg) { result: Result<MAMEnrollmentStatusResult> ->
+            val aadIdArg = args[1] as String
+            api.getRegisteredAccountStatus(upnArg, aadIdArg) { result: Result<MAMEnrollmentStatusResult> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(wrapError(error))

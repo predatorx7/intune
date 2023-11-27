@@ -51,10 +51,11 @@ abstract class IntunePlatformInterface extends PlatformInterface {
     String authorityURL,
   );
 
-  Future<bool> unregisterAccountFromMAM(String upn);
+  Future<bool> unregisterAccountFromMAM(String upn, String aadId);
 
   Future<MAMEnrollmentStatusResult> getRegisteredAccountStatus(
     String upn,
+    String aadId,
   );
 
   Future<bool> createMicrosoftPublicClientApplication(

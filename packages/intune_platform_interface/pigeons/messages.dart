@@ -27,11 +27,12 @@ abstract class IntuneApi {
   );
 
   @async
-  bool unregisterAccountFromMAM(String upn);
+  bool unregisterAccountFromMAM(String upn, String aadId);
 
   @async
   MAMEnrollmentStatusResult getRegisteredAccountStatus(
     String upn,
+    String aadId,
   );
 
   // MSAL APIs
@@ -173,7 +174,7 @@ class MSALUserAuthenticationDetails {
   final String accessToken;
   final MSALUserAccount account;
   final String authenticationScheme;
-  final int? correlationId;
+  final String? correlationId;
   final String expiresOnISO8601;
   final List<String?> scope;
 

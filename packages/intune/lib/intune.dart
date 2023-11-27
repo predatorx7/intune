@@ -144,13 +144,15 @@ class MicrosoftAppManagement {
 
   Future<bool> unregisterAccountFromMAM(
     String upn,
+    String aadId,
   ) {
-    return _instance.unregisterAccountFromMAM(upn);
+    return _instance.unregisterAccountFromMAM(upn, aadId);
   }
 
   Future<MAMEnrollmentStatusResult> getRegisteredAccountStatus(
     String upn,
+    String aadId,
   ) {
-    return _instance.getRegisteredAccountStatus(upn);
+    return _instance.getRegisteredAccountStatus(upn, aadId);
   }
 }

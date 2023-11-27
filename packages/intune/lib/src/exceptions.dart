@@ -41,7 +41,6 @@ class IntuneAuthenticationApiException extends IntuneAuthenticationException {
     super.internalException,
   ]);
 
-
   @override
   String toString() {
     return 'Auth Exception: ${response.message} (${response.errorCode})';

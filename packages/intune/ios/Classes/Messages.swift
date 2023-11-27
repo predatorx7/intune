@@ -245,7 +245,7 @@ struct MSALUserAuthenticationDetails {
     var accessToken: String
     var account: MSALUserAccount
     var authenticationScheme: String
-    var correlationId: Int64? = nil
+    var correlationId: String? = nil
     var expiresOnISO8601: String
     var scope: [String?]
 
@@ -253,7 +253,7 @@ struct MSALUserAuthenticationDetails {
         let accessToken = list[0] as! String
         let account = MSALUserAccount.fromList(list[1] as! [Any])!
         let authenticationScheme = list[2] as! String
-        let correlationId: Int64? = list[3] is NSNull ? nil : (list[3] is Int64? ? list[3] as! Int64? : Int64(list[3] as! Int32))
+        let correlationId: String? = nilOrValue(list[3])
         let expiresOnISO8601 = list[4] as! String
         let scope = list[5] as! [String?]
 
@@ -377,8 +377,8 @@ class IntuneApiCodec: FlutterStandardMessageCodec {
 protocol IntuneApi {
     func registerAuthentication(completion: @escaping (Result<Bool, Error>) -> Void)
     func registerAccountForMAM(upn: String, aadId: String, tenantId: String, authorityURL: String, completion: @escaping (Result<Bool, Error>) -> Void)
-    func unregisterAccountFromMAM(upn: String, completion: @escaping (Result<Bool, Error>) -> Void)
-    func getRegisteredAccountStatus(upn: String, completion: @escaping (Result<MAMEnrollmentStatusResult, Error>) -> Void)
+    func unregisterAccountFromMAM(upn: String, aadId: String, completion: @escaping (Result<Bool, Error>) -> Void)
+    func getRegisteredAccountStatus(upn: String, aadId: String, completion: @escaping (Result<MAMEnrollmentStatusResult, Error>) -> Void)
     func createMicrosoftPublicClientApplication(publicClientApplicationConfiguration: [String: Any?], forceCreation: Bool, enableLogs: Bool, completion: @escaping (Result<Bool, Error>) -> Void)
     func getAccounts(completion: @escaping (Result<[MSALUserAccount], Error>) -> Void)
     func acquireToken(params: AcquireTokenParams, completion: @escaping (Result<Bool, Error>) -> Void)
@@ -432,7 +432,8 @@ enum IntuneApiSetup {
             unregisterAccountFromMAMChannel.setMessageHandler { message, reply in
                 let args = message as! [Any]
                 let upnArg = args[0] as! String
-                api.unregisterAccountFromMAM(upn: upnArg) { result in
+                let aadIdArg = args[1] as! String
+                api.unregisterAccountFromMAM(upn: upnArg, aadId: aadIdArg) { result in
                     switch result {
                     case let .success(res):
                         reply(wrapResult(res))
@@ -449,7 +450,8 @@ enum IntuneApiSetup {
             getRegisteredAccountStatusChannel.setMessageHandler { message, reply in
                 let args = message as! [Any]
                 let upnArg = args[0] as! String
-                api.getRegisteredAccountStatus(upn: upnArg) { result in
+                let aadIdArg = args[1] as! String
+                api.getRegisteredAccountStatus(upn: upnArg, aadId: aadIdArg) { result in
                     switch result {
                     case let .success(res):
                         reply(wrapResult(res))

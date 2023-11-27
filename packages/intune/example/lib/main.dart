@@ -64,10 +64,25 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   MSALUserAuthenticationDetails? authDetails;
   bool get isAuthenticated => authDetails != null;
+  late final TextEditingController scopeTextController;
+
+  void setGraphScope() {
+    scopeTextController.text = 'https://graph.microsoft.com/user.read';
+  }
+
+  void setUserRead() {
+    scopeTextController.text = 'user.read';
+  }
 
   @override
   void initState() {
     super.initState();
+    scopeTextController = TextEditingController(
+      text: pref.getString('scope') ?? 'user.read',
+    );
+    scopeTextController.addListener(() {
+      pref.setString('scope', scopeTextController.text.trim());
+    });
     intune.authenticationStream.listen((event) {
       print('auth info: ${event?.accessToken}');
       if (event != null) {
@@ -94,13 +109,16 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  List<String> get scopes =>
+      scopeTextController.text.split(',').map((e) => e.trim()).toList();
+
   void _loginSilently() async {
     await intuneInitializedFuture;
     final id = pref.getString('auth-user-id');
     if (id == null) return;
     intune.msal.acquireTokenSilently(
       AcquireTokenSilentlyParams(
-        scopes: ['https://graph.microsoft.com/user.read'],
+        scopes: scopes,
         aadId: id,
       ),
     );
@@ -109,19 +127,32 @@ class _MyHomePageState extends State<MyHomePage> {
   void _onLogin() {
     intune.msal.acquireToken(
       AcquireTokenParams(
-        scopes: ['https://graph.microsoft.com/user.read'],
+        scopes: scopes,
       ),
     );
   }
 
-  void copyToken() async {
+  void copyText(String? text) async {
     final msg = ScaffoldMessenger.of(context);
+    msg.removeCurrentSnackBar();
+    if (text == null || text.isEmpty) {
+      msg.showSnackBar(const SnackBar(content: Text('Nothing to copy')));
+      return;
+    }
     await Clipboard.setData(
       ClipboardData(
-        text: authDetails?.accessToken ?? 'no access token',
+        text: text,
       ),
     );
-    msg.showSnackBar(const SnackBar(content: Text('Token has been copied')));
+    msg.showSnackBar(const SnackBar(content: Text('Copied')));
+  }
+
+  void copyToken() async {
+    copyText(authDetails?.accessToken);
+  }
+
+  void copyIdToken() async {
+    copyText(authDetails?.account.idToken);
   }
 
   void _onLogout() async {
@@ -142,12 +173,18 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
       if (oldAuthDetails != null) {
-        onSignout(oldAuthDetails.account.username);
+        onSignout(oldAuthDetails.account.username, oldAuthDetails.account.id);
       }
     } on Exception catch (e) {
       print('failed to logout');
       print(e);
     }
+  }
+
+  @override
+  void dispose() {
+    scopeTextController.dispose();
+    super.dispose();
   }
 
   @override
@@ -160,12 +197,36 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         child: ListView(
           shrinkWrap: true,
+          padding: const EdgeInsets.all(20),
           children: <Widget>[
-            if (!isAuthenticated)
+            if (!isAuthenticated) ...[
+              TextField(
+                controller: scopeTextController,
+                decoration: const InputDecoration.collapsed(
+                  hintText: 'https://graph.microsoft.com/user.read',
+                ),
+              ),
+              ButtonBar(
+                alignment: MainAxisAlignment.center,
+                children: [
+                  FilledButton(
+                    onPressed: setGraphScope,
+                    child: const Text('Graph Scope'),
+                  ),
+                  FilledButton(
+                    onPressed: setUserRead,
+                    child: const Text('Just user.read'),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 8,
+              ),
               ElevatedButton(
                 onPressed: _onLogin,
                 child: const Text('Login with MSAL'),
               ),
+            ],
             if (isAuthenticated) ...[
               ListTile(
                 onTap: copyToken,
@@ -180,12 +241,31 @@ class _MyHomePageState extends State<MyHomePage> {
                   tooltip: 'Copy token',
                 ),
               ),
+              ListTile(
+                onTap: copyToken,
+                title: Text(
+                  authDetails?.account.idToken ?? 'No Token',
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: const Text('ID Token'),
+                trailing: IconButton(
+                  onPressed: copyIdToken,
+                  icon: const Icon(Icons.copy_rounded),
+                  tooltip: 'Copy ID Token',
+                ),
+              ),
               const SizedBox(
                 height: 10,
               ),
               ElevatedButton(
                 onPressed: _onLogout,
                 child: const Text('Logout'),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              SelectableText(
+                authDetails?.encode().toString() ?? 'No Auth Details',
               ),
             ],
           ],
@@ -212,12 +292,12 @@ void onMSALUserAccount(MSALUserAccount account) async {
   }
 }
 
-void onSignout(String upn) async {
+void onSignout(String upn, String aadId) async {
   if (!useMAM) return;
   try {
     print('unregistering account for mam');
     // This may close the app
-    final result = await intune.mam.unregisterAccountFromMAM(upn);
+    final result = await intune.mam.unregisterAccountFromMAM(upn, aadId);
     print('did unregister account for mam: $result');
   } catch (e) {
     print('failed to unregister account for mam');

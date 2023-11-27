@@ -41,15 +41,17 @@ class IntunePlatform extends IntunePlatformInterface {
   @override
   Future<bool> unregisterAccountFromMAM(
     String upn,
+    String aadId,
   ) {
-    return _api.unregisterAccountFromMAM(upn);
+    return _api.unregisterAccountFromMAM(upn, aadId);
   }
 
   @override
   Future<messages.MAMEnrollmentStatusResult> getRegisteredAccountStatus(
     String upn,
+    String aadId,
   ) {
-    return _api.getRegisteredAccountStatus(upn);
+    return _api.getRegisteredAccountStatus(upn, aadId);
   }
 
   @override

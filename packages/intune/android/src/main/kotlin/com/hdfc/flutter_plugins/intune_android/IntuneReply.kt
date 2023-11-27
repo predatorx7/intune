@@ -101,6 +101,7 @@ class IntuneReply(messenger: BinaryMessenger) {
         val aadId = account.id
         val tenantId = account.tenantId
         val authorityURL = account.authority
+        val idToken = account.idToken
         val message = "Authentication succeeded for user $upn"
         Log.i("msal_auth", message)
 
@@ -108,12 +109,14 @@ class IntuneReply(messenger: BinaryMessenger) {
                 accessToken = result.accessToken,
                 authenticationScheme = result.authenticationScheme,
                 scope = result.scope.toList(),
+                correlationId = result.correlationId.toString(),
                 expiresOnISO8601 = result.expiresOn.toInstant().toString(),
                 account = MSALUserAccount(
                         authority = authorityURL,
                         username = upn,
                         tenantId = tenantId,
                         id = aadId,
+                        idToken = idToken,
                 ),
         ))
     }

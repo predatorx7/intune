@@ -72,6 +72,7 @@ class IntuneUtils(private val app: IPublicClientApplication, private val reply: 
 //                    })
                     .build()
             val result = app.acquireTokenSilent(params)
+
             if (result != null) {
                 Handler(Looper.getMainLooper()).post {
                     reply.onMSALAuthenticationResult(result)

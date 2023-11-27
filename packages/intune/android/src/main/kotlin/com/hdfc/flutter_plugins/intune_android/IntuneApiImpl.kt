@@ -154,31 +154,32 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
         return true
     }
 
-    override fun unregisterAccountFromMAM(upn: String, callback: (Result<Boolean>) -> Unit) {
+    override fun unregisterAccountFromMAM(upn: String, aadId: String, callback: (Result<Boolean>) -> Unit) {
         try {
-            callback(Result.success(unregisterAccountFromMAM(upn)))
+            callback(Result.success(unregisterAccountFromMAM(upn, aadId)))
         } catch (e: Throwable) {
             callback(Result.failure(e))
         }
     }
 
-    private fun unregisterAccountFromMAM(upn: String): Boolean {
+    private fun unregisterAccountFromMAM(upn: String, aadId: String): Boolean {
         val mEnrollmentManager = getEnrollmentManager() ?: return false
-        mEnrollmentManager.unregisterAccountForMAM(upn)
+        mEnrollmentManager.unregisterAccountForMAM(upn, aadId)
         return true
     }
 
-    override fun getRegisteredAccountStatus(upn: String, callback: (Result<MAMEnrollmentStatusResult>) -> Unit) {
+    override fun getRegisteredAccountStatus(upn: String, aadId: String, callback: (Result<MAMEnrollmentStatusResult>) -> Unit) {
         try {
-            callback(Result.success(MAMEnrollmentStatusResult(getRegisteredAccountStatus(upn))))
+            callback(Result.success(MAMEnrollmentStatusResult(getRegisteredAccountStatus(upn, aadId))))
         } catch (e: Throwable) {
             callback(Result.failure(e))
         }
     }
 
-    private fun getRegisteredAccountStatus(upn: String): MAMEnrollmentStatus? {
+    private fun getRegisteredAccountStatus(upn: String, aadId: String): MAMEnrollmentStatus? {
         val mEnrollmentManager = getEnrollmentManager() ?: return null
-        return when (val status = mEnrollmentManager.getRegisteredAccountStatus(upn)) {
+        // TODO: add aadid
+        return when (val status = mEnrollmentManager.getRegisteredAccountStatus(upn, aadId)) {
             null -> null
             else -> enrollmentStatusResultFromEnrollmentManagerResult(status)
         }
@@ -194,6 +195,7 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
                             id = account.id,
                             tenantId = account.tenantId,
                             username = account.username,
+                            idToken = account.idToken,
                     )
                 }
                 return callback(Result.success(accounts))
@@ -205,6 +207,7 @@ class IntuneApiImpl(private val context: Context, private val reply: IntuneReply
                             id = account.id,
                             tenantId = account.tenantId,
                             username = account.username,
+                            idToken = account.idToken,
                     ))))
                 }
             }

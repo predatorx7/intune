@@ -9,7 +9,8 @@ final pcaConfig = {
     }
   ],
   "client_id": "0bf9a561-112a-4691-8475-14489183d75d",
-  "redirect_uri": "msauth://com.hdfcbank.irmintunemdmuat/%2F56jD0%2FutKRWxj0sQxgm5d43G48%3D",
+  "redirect_uri":
+      "msauth://com.hdfcbank.irmintunemdmuat/%2F56jD0%2FutKRWxj0sQxgm5d43G48%3D",
   "authorization_user_agent": "DEFAULT",
   "//authorization_user_agent": "WEBVIEW",
   "minimum_required_broker_protocol_version": "3.0",
